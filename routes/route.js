@@ -45,4 +45,25 @@ route.post("/adduser", (req, res, next) => {
     });
 });
 
+// POST LOGIN
+route.post("/login", async (req, res, next) => {
+  console.log(req);
+  let userName = req.body.userName;
+  let password = req.body.password;
+  try {
+    let userCheck = await Userslist.findOne({ userName: userName });
+    if (userCheck) {
+      if (userCheck.password == password) {
+        res.send(JSON.stringify({ status: true, isAdmin: userCheck.isAdmin }));
+      } else {
+        res.send(JSON.stringify({ status: false }));
+      }
+    } else {
+      res.send(JSON.stringify({ status: false }));
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 module.exports = route;
