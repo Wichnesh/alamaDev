@@ -2,11 +2,10 @@ var express = require("express");
 var route = express.Router();
 var Userslist = require("../models/userData");
 var Franchiselist = require("../models/franchise");
-const franchise = require("../models/franchise");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 //SHOW USERS LIST
-route.post("/userslist", async (req, res) => {
+route.post("/getallusers", async (req, res) => {
   try {
     const users = await Userslist.find({});
     if (users.length === 0) {
@@ -72,8 +71,8 @@ route.post("/generateID", async (req, res, next) => {
   let genID = generateID();
   res.send(JSON.stringify({ status: true, data: genID }));
 });
-
-route.post("/fregister", async (req, res, next) => {
+// FRANCHISE REGISTRATION
+route.post("/franchise-reg", async (req, res, next) => {
   let newFranchise = Franchiselist({
     franchiseID: req.body.franchiseID,
     name: req.body.name,
@@ -100,9 +99,28 @@ route.post("/fregister", async (req, res, next) => {
       });
     });
 });
+// GET ALL FRANCHISE
+route.post("/getallfranchise", async (req, res) => {
+  try {
+    let allFranchise = await Franchiselist.find({}, { __v: 0 });
+    if (allFranchise) {
+      res.status(201).json({
+        status: false,
+        data: allFranchise,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      status: false,
+      msg: "DB error",
+    });
+  }
+});
+
 // HELPER FUNCTION
 function generateID() {
-  const alphabet = "abcdefghijklmnopqrstuvwxyz";
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const randomLetter1 = alphabet[Math.floor(Math.random() * alphabet.length)];
   const randomLetter2 = alphabet[Math.floor(Math.random() * alphabet.length)];
   let randomNumbers = Math.round(Math.random() * 10000);
