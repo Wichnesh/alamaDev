@@ -3,6 +3,7 @@ var route = express.Router();
 var Userslist = require("../models/userData");
 var Franchiselist = require("../models/franchise");
 const bcrypt = require("bcrypt");
+var request = require("client-request");
 const saltRounds = 10;
 //SHOW USERS LIST
 route.post("/getallusers", async (req, res) => {
@@ -46,7 +47,7 @@ route.post("/adduser", (req, res, next) => {
       });
     });
 });
-// POST LOGIN
+// POST LOGIN ADMIN
 route.post("/login", async (req, res, next) => {
   console.log(req);
   let userName = req.body.userName;
@@ -66,9 +67,29 @@ route.post("/login", async (req, res, next) => {
     console.log(err);
   }
 });
+// POST LOGIN USER
+route.post("/login", async (req, res, next) => {
+  console.log(req);
+  let userName = req.body.userName;
+  let password = req.body.password;
+  try {
+    let userCheck = await Userslist.findOne({ userName: userName });
+    if (userCheck.approve) {
+      if (userCheck.password == password) {
+        res.send(JSON.stringify({ status: true, isAdmin: userCheck.isAdmin }));
+      } else {
+        res.send(JSON.stringify({ status: false }));
+      }
+    } else {
+      res.send(JSON.stringify({ status: false, msg: "Unapproved User" }));
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
 // GENERATE ID
 route.post("/generateID", async (req, res, next) => {
-  let genID = generateID();
+  let genID = await generateID();
   res.send(JSON.stringify({ status: true, data: genID }));
 });
 // FRANCHISE REGISTRATION
@@ -105,7 +126,7 @@ route.post("/getallfranchise", async (req, res) => {
     let allFranchise = await Franchiselist.find({}, { __v: 0 });
     if (allFranchise) {
       res.status(201).json({
-        status: false,
+        status: true,
         data: allFranchise,
       });
     }
@@ -117,14 +138,17 @@ route.post("/getallfranchise", async (req, res) => {
     });
   }
 });
-
 // HELPER FUNCTION
-function generateID() {
+async function generateID() {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const randomLetter1 = alphabet[Math.floor(Math.random() * alphabet.length)];
   const randomLetter2 = alphabet[Math.floor(Math.random() * alphabet.length)];
   let randomNumbers = Math.round(Math.random() * 10000);
   let genID = randomLetter1 + randomLetter2 + randomNumbers;
+  let franchiseList = await Franchiselist.find({ franchiseID: genID });
+  if (franchiseList) {
+    generateID();
+  }
   return genID;
 }
 module.exports = route;
