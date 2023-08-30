@@ -8,35 +8,27 @@ const franchiseSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: true,
   },
   email: {
     type: String,
-    required: true,
   },
   contactNumber: {
     type: String,
-    required: true,
   },
   state: {
     type: String,
-    required: true,
   },
   country: {
     type: String,
-    required: true,
   },
   username: {
     type: String,
-    required: true,
   },
   password: {
     type: String,
-    required: true,
   },
   registerDate: {
     type: String,
-    required: true,
   },
   isAdmin: {
     type: Boolean,
