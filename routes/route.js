@@ -1,8 +1,11 @@
 var express = require("express");
 var route = express.Router();
-
 var Userslist = require("../models/userData");
-
+var Franchiselist = require("../models/franchise");
+const franchise = require("../models/franchise");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+//SHOW USERS LIST
 route.post("/userslist", async (req, res) => {
   try {
     const users = await Userslist.find({});
@@ -22,7 +25,7 @@ route.post("/userslist", async (req, res) => {
     console.log(err);
   }
 });
-
+//ADD USER
 route.post("/adduser", (req, res, next) => {
   let newUser = Userslist({
     userName: req.body.userName,
@@ -44,7 +47,6 @@ route.post("/adduser", (req, res, next) => {
       });
     });
 });
-
 // POST LOGIN
 route.post("/login", async (req, res, next) => {
   console.log(req);
@@ -65,5 +67,46 @@ route.post("/login", async (req, res, next) => {
     console.log(err);
   }
 });
+// GENERATE ID
+route.post("/generateID", async (req, res, next) => {
+  let genID = generateID();
+  res.send(JSON.stringify({ status: true, data: genID }));
+});
 
+route.post("/fregister", async (req, res, next) => {
+  let newFranchise = Franchiselist({
+    franchiseID: req.body.franchiseID,
+    name: req.body.name,
+    email: req.body.email,
+    contactNumber: req.body.contactNumber,
+    state: req.body.state,
+    country: req.body.country,
+    username: req.body.username,
+    password: req.body.password,
+    registerDate: req.body.registerDate,
+  });
+  newFranchise
+    .save()
+    .then(() => {
+      res.status(201).json({
+        status: true,
+        message: "Franchise added successfully!",
+      });
+    })
+    .catch((error) => {
+      res.status(400).json({
+        status: false,
+        error: error,
+      });
+    });
+});
+// HELPER FUNCTION
+function generateID() {
+  const alphabet = "abcdefghijklmnopqrstuvwxyz";
+  const randomLetter1 = alphabet[Math.floor(Math.random() * alphabet.length)];
+  const randomLetter2 = alphabet[Math.floor(Math.random() * alphabet.length)];
+  let randomNumbers = Math.round(Math.random() * 10000);
+  let genID = randomLetter1 + randomLetter2 + randomNumbers;
+  return genID;
+}
 module.exports = route;
