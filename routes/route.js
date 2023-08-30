@@ -1,87 +1,34 @@
 var express = require("express");
 var route = express.Router();
-var Userslist = require("../models/userData");
+const jwt = require("jsonwebtoken");
 var Franchiselist = require("../models/franchise");
 const bcrypt = require("bcrypt");
 var request = require("client-request");
 const saltRounds = 10;
-//SHOW USERS LIST
-route.post("/getallusers", async (req, res) => {
-  try {
-    const users = await Userslist.find({});
-    if (users.length === 0) {
-      res.status(201).json({
-        status: true,
-        message: "No Users in Database",
-      });
-    } else {
-      res.status(201).json({
-        status: true,
-        data: users,
-      });
-    }
-    console.log(users);
-  } catch (err) {
-    console.log(err);
-  }
-});
-//ADD USER
-route.post("/adduser", (req, res, next) => {
-  let newUser = Userslist({
-    userName: req.body.userName,
-    password: req.body.password,
-    isAdmin: req.body.isAdmin,
-  });
-  newUser
-    .save()
-    .then(() => {
-      res.status(201).json({
-        status: true,
-        message: "User added successfully!",
-      });
-    })
-    .catch((error) => {
-      res.status(400).json({
-        status: false,
-        error: error,
-      });
-    });
-});
-// POST LOGIN ADMIN
+
+// LOGINUSER
 route.post("/login", async (req, res, next) => {
-  console.log(req);
   let userName = req.body.userName;
   let password = req.body.password;
+  let user = {
+    username: userName,
+    password,
+  };
   try {
-    let userCheck = await Userslist.findOne({ userName: userName });
+    let userCheck = await Franchiselist.findOne({ username: userName });
+    console.log(userCheck);
     if (userCheck) {
-      if (userCheck.password == password) {
-        res.send(JSON.stringify({ status: true, isAdmin: userCheck.isAdmin }));
+      if (userCheck.approve == true && userCheck.password == password) {
+        jwt.sign({ user }, "secretkey", (err, token) => {
+          res.send(
+            JSON.stringify({ token, status: true, isAdmin: userCheck.isAdmin })
+          );
+        });
       } else {
         res.send(JSON.stringify({ status: false }));
       }
     } else {
-      res.send(JSON.stringify({ status: false }));
-    }
-  } catch (err) {
-    console.log(err);
-  }
-});
-// POST LOGIN USER
-route.post("/userlogin", async (req, res, next) => {
-  console.log(req);
-  let userName = req.body.userName;
-  let password = req.body.password;
-  try {
-    let userCheck = await Userslist.findOne({ userName: userName });
-    if (userCheck.approve) {
-      if (userCheck.password == password) {
-        res.send(JSON.stringify({ status: true, isAdmin: userCheck.isAdmin }));
-      } else {
-        res.send(JSON.stringify({ status: false }));
-      }
-    } else {
-      res.send(JSON.stringify({ status: false, msg: "Unapproved User" }));
+      res.send(JSON.stringify({ status: false, msg: "Unapproved Member" }));
     }
   } catch (err) {
     console.log(err);
@@ -123,7 +70,7 @@ route.post("/franchise-reg", async (req, res, next) => {
 // GET ALL FRANCHISE
 route.post("/getallfranchise", async (req, res) => {
   try {
-    let allFranchise = await Franchiselist.find({}, { __v: 0 });
+    let allFranchise = await Franchiselist.find({ isAdmin: false }, { __v: 0 });
     if (allFranchise) {
       res.status(201).json({
         status: true,
@@ -138,7 +85,30 @@ route.post("/getallfranchise", async (req, res) => {
     });
   }
 });
-// HELPER FUNCTION
+//APPROVE USER
+route.post("/approveUser", verifyToken, (req, res, next) => {
+  let { franchiseID } = req.body;
+  try {
+    const filter = { franchiseID: franchiseID };
+    const update = {
+      approve: true,
+    };
+    jwt.verify(req.token, "secretkey", async (err, authData) => {
+      if (err) res.sendStatus(403);
+      else {
+        let updateData = await Franchiselist.findOneAndUpdate(filter, update);
+        res.send(JSON.stringify({ status: true, msg: "User approved!" }));
+      }
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      msg: err,
+    });
+  }
+});
+
+// HELPER FUNCTIONS
 async function generateID() {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const randomLetter1 = alphabet[Math.floor(Math.random() * alphabet.length)];
@@ -150,5 +120,16 @@ async function generateID() {
     generateID();
   }
   return genID;
+}
+function verifyToken(req, res, next) {
+  const bearerHeader = req.headers["authorization"];
+  if (typeof bearerHeader !== "undefined") {
+    const bearer = bearerHeader.split(" ");
+    const bearerToken = bearer[1];
+    req.token = bearerToken;
+    next();
+  } else {
+    res.sendStatus(403);
+  }
 }
 module.exports = route;
