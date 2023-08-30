@@ -2,8 +2,6 @@ var express = require("express");
 var route = express.Router();
 const jwt = require("jsonwebtoken");
 var Franchiselist = require("../models/franchise");
-const bcrypt = require("bcrypt");
-var request = require("client-request");
 const saltRounds = 10;
 
 // LOGINUSER
