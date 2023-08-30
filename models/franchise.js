@@ -42,6 +42,10 @@ const franchiseSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  approve: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Franchiselist = (module.exports = mongoose.model(
