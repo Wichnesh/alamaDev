@@ -68,7 +68,7 @@ route.post("/login", async (req, res, next) => {
   }
 });
 // POST LOGIN USER
-route.post("/login", async (req, res, next) => {
+route.post("/userlogin", async (req, res, next) => {
   console.log(req);
   let userName = req.body.userName;
   let password = req.body.password;
