@@ -65,7 +65,7 @@ const studentSchema = new mongoose.Schema({
     required: true,
   },
   cost: {
-    type: Number,
+    type: [Number],
     required: true,
   },
 });
