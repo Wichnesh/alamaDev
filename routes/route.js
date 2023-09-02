@@ -295,18 +295,11 @@ route.post("/getallitems", async (req, res, next) => {
 // UPDATE STOCK
 route.post("/editItem", async (req, res, next) => {
   let updateData = req.body;
+  console.log(updateData);
   try {
     const filter = { _id: "64f33f0d3ed69d5cfdffab5f" };
-    const update = {
-      updateData,
-    };
-    // jwt.verify(req.token, "secretkey", async (err, authData) => {
-    //   if (err) res.sendStatus(403);
-    //   else {
-    let updateData = await Itemlist.findOneAndUpdate(filter, update);
+    let updatedData = await Itemlist.findOneAndUpdate(filter, updateData);
     res.send(JSON.stringify({ status: true, message: "Items updated!" }));
-    // }
-    // });
   } catch (err) {
     res.status(400).json({
       status: false,
