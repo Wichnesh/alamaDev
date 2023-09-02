@@ -147,6 +147,7 @@ route.post("/student-reg", async (req, res) => {
       });
     });
   let update = {};
+  const filter = { _id: "64f33f0d3ed69d5cfdffab5f" };
   if (newStudent.items) {
     if (newStudent.items.includes("Pencil")) update.pencil = "1";
     if (newStudent.items.includes("Bag")) update.bag = "1";
@@ -160,7 +161,15 @@ route.post("/student-reg", async (req, res) => {
     if (newStudent.tShirt == "12") update.tshirtsize12 = "1";
     if (newStudent.tShirt == "16") update.tshirtsize16 = "1";
   }
-
+  // try {
+  //   let updateData = await Itemlist.findOneAndUpdate(filter, update);
+  //   res.send(JSON.stringify({ status: true, message: "Items updated!" }));
+  // } catch (err) {
+  //   res.status(400).json({
+  //     status: false,
+  //     message: err,
+  //   });
+  // }
   console.log("update", update);
 });
 //GET ALL STUDENTS
