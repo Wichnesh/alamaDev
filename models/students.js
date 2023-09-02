@@ -4,10 +4,10 @@ const studentSchema = new mongoose.Schema({
   studentID: {
     type: Number,
     required: true,
+    unique: true,
   },
   enrollDate: {
     type: String,
-    unique: true,
     required: true,
   },
   studentName: {
@@ -55,24 +55,10 @@ const studentSchema = new mongoose.Schema({
     required: true,
   },
   items: {
-    pencil: {
-      type: String,
-    },
-    bag: {
-      type: String,
-    },
-    abacus: {
-      type: String,
-    },
-    listeningAbility: {
-      type: String,
-    },
-    progressCard: {
-      type: String,
-    },
-    tShirt: {
-      type: String,
-    },
+    type: [String],
+  },
+  tShirt: {
+    type: String,
   },
   program: {
     type: String,
