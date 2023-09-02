@@ -214,50 +214,8 @@ route.post("/getfranchisestudent", async (req, res, next) => {
 });
 route.post("/addItem", (req, res, next) => {
   let newItem = Itemlist({
-    pencil: 0,
-    bag: 0,
-    studentAbacus: 0,
-    listeningAbility: 0,
-    progressCard: 0,
-    tshirtsize8: 0,
-    tshirtsize12: 0,
-    tshirtsize16: 0,
-    level1MA: 0,
-    level2MA: 0,
-    level3MA: 0,
-    level4MA: 0,
-    level5MA: 0,
-    level6MA: 0,
-    level1AA: 0,
-    level2AA: 0,
-    level3AA: 0,
-    level4AA: 0,
-    level5AA: 0,
-    level6AA: 0,
-    CB1MA: 0,
-    CB2MA: 0,
-    CB3MA: 0,
-    CB4MA: 0,
-    CB5MA: 0,
-    CB6MA: 0,
-    CB1AA: 0,
-    CB2AA: 0,
-    CB3AA: 0,
-    CB4AA: 0,
-    CB5AA: 0,
-    CB6AA: 0,
-    PB1MA: 0,
-    PB2MA: 0,
-    PB3MA: 0,
-    PB4MA: 0,
-    PB5MA: 0,
-    PB6MA: 0,
-    PB1AA: 0,
-    PB2AA: 0,
-    PB3AA: 0,
-    PB4AA: 0,
-    PB5AA: 0,
-    PB6AA: 0,
+    name: req.body.name,
+    count: req.body.count,
   });
   newItem
     .save()
@@ -293,20 +251,20 @@ route.post("/getallitems", async (req, res, next) => {
   }
 });
 // UPDATE STOCK
-route.post("/editItem", async (req, res, next) => {
-  let updateData = req.body;
-  console.log(updateData);
-  try {
-    const filter = { _id: "64f33f0d3ed69d5cfdffab5f" };
-    let updatedData = await Itemlist.findOneAndUpdate(filter, updateData);
-    res.send(JSON.stringify({ status: true, message: "Items updated!" }));
-  } catch (err) {
-    res.status(400).json({
-      status: false,
-      message: err,
-    });
-  }
-});
+// route.post("/editItem", async (req, res, next) => {
+//   let id = req.body.id;
+//   console.log(updateData);
+//   try {
+//     const filter = { _id: "64f33f0d3ed69d5cfdffab5f" };
+//     let updatedData = await Itemlist.findOneAndUpdate(filter, updateData);
+//     res.send(JSON.stringify({ status: true, message: "Items updated!" }));
+//   } catch (err) {
+//     res.status(400).json({
+//       status: false,
+//       message: err,
+//     });
+//   }
+// });
 // HELPER FUNCTIONS
 async function generateID() {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
