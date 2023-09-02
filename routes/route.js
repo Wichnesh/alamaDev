@@ -28,7 +28,7 @@ route.post("/login", async (req, res, next) => {
         res.send(JSON.stringify({ status: false }));
       }
     } else {
-      res.send(JSON.stringify({ status: false, msg: "Unapproved Member" }));
+      res.send(JSON.stringify({ status: false, message: "Unapproved Member" }));
     }
   } catch (err) {
     console.log(err);
@@ -85,7 +85,7 @@ route.post("/getallfranchise", async (req, res) => {
     console.log(err);
     res.status(400).json({
       status: false,
-      msg: "DB error",
+      message: "DB error",
     });
   }
 });
@@ -101,13 +101,13 @@ route.post("/approveUser", verifyToken, (req, res, next) => {
       if (err) res.sendStatus(403);
       else {
         let updateData = await Franchiselist.findOneAndUpdate(filter, update);
-        res.send(JSON.stringify({ status: true, msg: "User approved!" }));
+        res.send(JSON.stringify({ status: true, message: "User approved!" }));
       }
     });
   } catch (err) {
     res.status(400).json({
       status: false,
-      msg: err,
+      message: err,
     });
   }
 });
@@ -161,7 +161,7 @@ route.post("/getallstudents", async (req, res) => {
     console.log(err);
     res.status(400).json({
       status: false,
-      msg: "DB error",
+      message: "DB error",
     });
   }
 });
@@ -227,7 +227,10 @@ route.post("/addItem", (req, res, next) => {
       });
     });
 });
+// route.post("/editItem", (req, res, next) => {
+//   let id = req.body.id;
 
+// });
 // HELPER FUNCTIONS
 async function generateID() {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
