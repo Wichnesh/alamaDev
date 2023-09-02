@@ -227,10 +227,26 @@ route.post("/addItem", (req, res, next) => {
       });
     });
 });
-// route.post("/editItem", (req, res, next) => {
-//   let id = req.body.id;
-
-// });
+route.post("/getallitems", async (req, res, next) => {
+  try {
+    let allItem = await Itemlist.find({}, { __v: 0 });
+    if (allItem) {
+      res.status(201).json({
+        status: true,
+        data: allItem,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      status: false,
+      message: "DB error",
+    });
+  }
+});
+route.post("/editItem", (req, res, next) => {
+  let id = req.body.id;
+});
 // HELPER FUNCTIONS
 async function generateID() {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
