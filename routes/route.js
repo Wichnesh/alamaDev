@@ -59,7 +59,7 @@ route.post("/franchise-reg", async (req, res, next) => {
   newFranchise
     .save()
     .then(() => {
-      res.status(201).json({
+      res.status(200).json({
         status: true,
         message: "Franchise added successfully!",
       });
@@ -76,7 +76,7 @@ route.post("/getallfranchise", async (req, res) => {
   try {
     let allFranchise = await Franchiselist.find({ isAdmin: false }, { __v: 0 });
     if (allFranchise) {
-      res.status(201).json({
+      res.status(200).json({
         status: true,
         data: allFranchise,
       });
@@ -135,7 +135,7 @@ route.post("/student-reg", async (req, res) => {
   newStudent
     .save()
     .then(() => {
-      res.status(201).json({
+      res.status(200).json({
         status: true,
         message: "Student added successfully!",
       });
@@ -146,13 +146,29 @@ route.post("/student-reg", async (req, res) => {
         error: error,
       });
     });
+  let update = {};
+  if (newStudent.items) {
+    if (newStudent.items.includes("Pencil")) update.pencil = "1";
+    if (newStudent.items.includes("Bag")) update.bag = "1";
+    if (newStudent.items.includes("Student Abacus")) update.studentAbacus = "1";
+    if (newStudent.items.includes("Listening Ability"))
+      update.listeningAbility = "1";
+    if (newStudent.items.includes("Progress Card")) update.progressCard = "1";
+  }
+  if (newStudent.tShirt) {
+    if (newStudent.tShirt == "8") update.tshirtsize8 = "1";
+    if (newStudent.tShirt == "12") update.tshirtsize12 = "1";
+    if (newStudent.tShirt == "16") update.tshirtsize16 = "1";
+  }
+
+  console.log("update", update);
 });
 //GET ALL STUDENTS
 route.post("/getallstudents", async (req, res) => {
   try {
     let allStudent = await Studentlist.find({}, { __v: 0 });
     if (allStudent) {
-      res.status(201).json({
+      res.status(200).json({
         status: true,
         data: allStudent,
       });
@@ -166,15 +182,15 @@ route.post("/getallstudents", async (req, res) => {
   }
 });
 //GET Fanchise Registered Students
-route.post("getfranchisestudent", async (req, res, next) => {
+route.post("/getfranchisestudent", async (req, res, next) => {
   let franchiseUsername = req.body.username;
   try {
     let allStudent = await Studentlist.find(
-      { username: franchiseUsername },
+      { franchise: franchiseUsername },
       { __v: 0 }
     );
     if (allStudent) {
-      res.status(201).json({
+      res.status(200).json({
         status: true,
         data: allStudent,
       });
@@ -237,7 +253,7 @@ route.post("/addItem", (req, res, next) => {
   newItem
     .save()
     .then(() => {
-      res.status(201).json({
+      res.status(200).json({
         status: true,
         message: "Item added successfully!",
       });
@@ -254,7 +270,7 @@ route.post("/getallitems", async (req, res, next) => {
   try {
     let allItem = await Itemlist.find({}, { __v: 0 });
     if (allItem) {
-      res.status(201).json({
+      res.status(200).json({
         status: true,
         data: allItem,
       });
@@ -279,7 +295,7 @@ route.post("/editItem", async (req, res, next) => {
     //   if (err) res.sendStatus(403);
     //   else {
     let updateData = await Itemlist.findOneAndUpdate(filter, update);
-    res.send(JSON.stringify({ status: true, message: "Items approved!" }));
+    res.send(JSON.stringify({ status: true, message: "Items updated!" }));
     // }
     // });
   } catch (err) {
