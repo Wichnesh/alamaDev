@@ -165,6 +165,28 @@ route.post("/getallstudents", async (req, res) => {
     });
   }
 });
+//GET Fanchise Registered Students
+route.post("getfranchisestudent", async (req, res, next) => {
+  let franchiseUsername = req.body.username;
+  try {
+    let allStudent = await Studentlist.find(
+      { username: franchiseUsername },
+      { __v: 0 }
+    );
+    if (allStudent) {
+      res.status(201).json({
+        status: true,
+        data: allStudent,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      status: false,
+      message: "DB error",
+    });
+  }
+});
 route.post("/addItem", (req, res, next) => {
   let newItem = Itemlist({
     pencil: 0,
@@ -227,6 +249,7 @@ route.post("/addItem", (req, res, next) => {
       });
     });
 });
+// GET ALL STOCK
 route.post("/getallitems", async (req, res, next) => {
   try {
     let allItem = await Itemlist.find({}, { __v: 0 });
@@ -244,8 +267,27 @@ route.post("/getallitems", async (req, res, next) => {
     });
   }
 });
-route.post("/editItem", (req, res, next) => {
-  let id = req.body.id;
+// UPDATE STOCK
+route.post("/editItem", async (req, res, next) => {
+  let updateData = req.body;
+  try {
+    const filter = { _id: "64f33f0d3ed69d5cfdffab5f" };
+    const update = {
+      updateData,
+    };
+    // jwt.verify(req.token, "secretkey", async (err, authData) => {
+    //   if (err) res.sendStatus(403);
+    //   else {
+    let updateData = await Itemlist.findOneAndUpdate(filter, update);
+    res.send(JSON.stringify({ status: true, message: "Items approved!" }));
+    // }
+    // });
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err,
+    });
+  }
 });
 // HELPER FUNCTIONS
 async function generateID() {
