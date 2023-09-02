@@ -2,6 +2,7 @@ var express = require("express");
 var route = express.Router();
 const jwt = require("jsonwebtoken");
 var Franchiselist = require("../models/franchise");
+var Studentlist = require("../models/students");
 const saltRounds = 10;
 
 // LOGINUSER
@@ -35,6 +36,10 @@ route.post("/login", async (req, res, next) => {
 // GENERATE ID
 route.post("/generateID", async (req, res, next) => {
   let genID = await generateID();
+  res.send(JSON.stringify({ status: true, data: genID }));
+});
+route.post("/generate-studentid", async (req, res, next) => {
+  let genID = await generateStudentID();
   res.send(JSON.stringify({ status: true, data: genID }));
 });
 // FRANCHISE REGISTRATION
@@ -105,7 +110,66 @@ route.post("/approveUser", verifyToken, (req, res, next) => {
     });
   }
 });
-
+//STUDENT REGISTRATION
+route.post("/student-reg", async (req, res) => {
+  let newStudent = Studentlist({
+    studentID: req.body.studentID,
+    enrollDate: req.body.enrollDate,
+    studentName: req.body.studentName,
+    address: req.body.address,
+    state: req.body.state,
+    city: req.body.city,
+    mobileNumber: req.body.mobileNumber,
+    email: req.body.email,
+    fatherName: req.body.fatherName,
+    motherName: req.body.motherName,
+    franchise: req.body.franchise,
+    country: req.body.country,
+    level: req.body.level,
+    items: {
+      pencil: req.body.items.pencil,
+      bag: req.body.items.bag,
+      abacus: req.body.items.abacus,
+      listeningAbility: req.body.items.listeningAbility,
+      progressCard: req.body.items.progressCard,
+      tShirt: req.body.items.tShirt,
+    },
+    program: req.body.program,
+    cost: req.body.cost,
+  });
+  newStudent
+    .save()
+    .then(() => {
+      res.status(201).json({
+        status: true,
+        message: "Student added successfully!",
+      });
+    })
+    .catch((error) => {
+      res.status(400).json({
+        status: false,
+        error: error,
+      });
+    });
+});
+//GET ALL STUDENTS
+route.post("/getallstudents", async (req, res) => {
+  try {
+    let allStudent = await Studentlist.find({}, { __v: 0 });
+    if (allStudent) {
+      res.status(201).json({
+        status: true,
+        data: allStudent,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      status: false,
+      msg: "DB error",
+    });
+  }
+});
 // HELPER FUNCTIONS
 async function generateID() {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -118,6 +182,12 @@ async function generateID() {
     generateID();
   }
   return genID;
+}
+async function generateStudentID() {
+  let studentsList = await Studentlist.find({});
+  if (studentsList) {
+    return studentsList.length + 1;
+  }
 }
 function verifyToken(req, res, next) {
   const bearerHeader = req.headers["authorization"];
