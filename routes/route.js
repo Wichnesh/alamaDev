@@ -3,6 +3,7 @@ var route = express.Router();
 const jwt = require("jsonwebtoken");
 var Franchiselist = require("../models/franchise");
 var Studentlist = require("../models/students");
+var Itemlist = require("../models/items");
 const saltRounds = 10;
 
 // LOGINUSER
@@ -126,14 +127,8 @@ route.post("/student-reg", async (req, res) => {
     franchise: req.body.franchise,
     country: req.body.country,
     level: req.body.level,
-    items: {
-      pencil: req.body.items.pencil,
-      bag: req.body.items.bag,
-      abacus: req.body.items.abacus,
-      listeningAbility: req.body.items.listeningAbility,
-      progressCard: req.body.items.progressCard,
-      tShirt: req.body.items.tShirt,
-    },
+    items: req.body.items,
+    tShirt: req.body.tShirt,
     program: req.body.program,
     cost: req.body.cost,
   });
@@ -170,6 +165,69 @@ route.post("/getallstudents", async (req, res) => {
     });
   }
 });
+route.post("/addItem", (req, res, next) => {
+  let newItem = Itemlist({
+    pencil: 0,
+    bag: 0,
+    studentAbacus: 0,
+    listeningAbility: 0,
+    progressCard: 0,
+    tshirtsize8: 0,
+    tshirtsize12: 0,
+    tshirtsize16: 0,
+    level1MA: 0,
+    level2MA: 0,
+    level3MA: 0,
+    level4MA: 0,
+    level5MA: 0,
+    level6MA: 0,
+    level1AA: 0,
+    level2AA: 0,
+    level3AA: 0,
+    level4AA: 0,
+    level5AA: 0,
+    level6AA: 0,
+    CB1MA: 0,
+    CB2MA: 0,
+    CB3MA: 0,
+    CB4MA: 0,
+    CB5MA: 0,
+    CB6MA: 0,
+    CB1AA: 0,
+    CB2AA: 0,
+    CB3AA: 0,
+    CB4AA: 0,
+    CB5AA: 0,
+    CB6AA: 0,
+    PB1MA: 0,
+    PB2MA: 0,
+    PB3MA: 0,
+    PB4MA: 0,
+    PB5MA: 0,
+    PB6MA: 0,
+    PB1AA: 0,
+    PB2AA: 0,
+    PB3AA: 0,
+    PB4AA: 0,
+    PB5AA: 0,
+    PB6AA: 0,
+  });
+  newItem
+    .save()
+    .then(() => {
+      res.status(201).json({
+        status: true,
+        message: "Item added successfully!",
+      });
+    })
+    .catch((error) => {
+      res.status(400).json({
+        status: false,
+        error: error,
+      });
+    });
+});
+
 // HELPER FUNCTIONS
 async function generateID() {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
