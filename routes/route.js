@@ -40,7 +40,7 @@ route.post("/generateID", async (req, res, next) => {
 });
 route.post("/generate-studentid", async (req, res, next) => {
   let genID = await generateStudentID();
-  res.send(JSON.stringify({ status: true, data: genID }));
+  res.send(JSON.stringify({ status: true, data: genID.toString() }));
 });
 // FRANCHISE REGISTRATION
 route.post("/franchise-reg", async (req, res, next) => {
