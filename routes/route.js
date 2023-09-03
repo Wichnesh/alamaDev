@@ -253,13 +253,11 @@ route.post("/getallitems", async (req, res, next) => {
 // UPDATE STOCK
 route.post("/editItem", async (req, res, next) => {
   let id = req.body.id;
-  let count = req.body.count;
+  let countReq = req.body.count;
   try {
     const filter = { _id: id };
-    let data = await Itemlist.findOneAndUpdate(filter);
-    let updatedCount = data.count + count;
     let updateData = {
-      count: updatedCount,
+      count: countReq,
     };
     let updatedData = await Itemlist.findOneAndUpdate(filter, updateData);
     res.send(JSON.stringify({ status: true, message: "Items updated!" }));
