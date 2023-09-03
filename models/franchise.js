@@ -18,7 +18,7 @@ const franchiseSchema = new mongoose.Schema({
   state: {
     type: String,
   },
-  country: {
+  district: {
     type: String,
   },
   username: {

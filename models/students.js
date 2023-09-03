@@ -46,10 +46,6 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  country: {
-    type: String,
-    required: true,
-  },
   level: {
     type: String,
     required: true,
@@ -66,6 +62,10 @@ const studentSchema = new mongoose.Schema({
   },
   cost: {
     type: [Number],
+    required: true,
+  },
+  paymentID: {
+    type: String,
     required: true,
   },
 });

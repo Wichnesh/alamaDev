@@ -51,7 +51,7 @@ route.post("/franchise-reg", async (req, res, next) => {
     email: req.body.email,
     contactNumber: req.body.contactNumber,
     state: req.body.state,
-    country: req.body.country,
+    district: req.body.district,
     username: req.body.username,
     password: req.body.password,
     registerDate: req.body.registerDate,
@@ -125,12 +125,12 @@ route.post("/student-reg", async (req, res) => {
     fatherName: req.body.fatherName,
     motherName: req.body.motherName,
     franchise: req.body.franchise,
-    country: req.body.country,
     level: req.body.level,
     items: req.body.items,
     tShirt: req.body.tShirt,
     program: req.body.program,
     cost: req.body.cost,
+    paymentID:  req.body.paymentID
   });
   newStudent
     .save()
@@ -146,31 +146,23 @@ route.post("/student-reg", async (req, res) => {
         error: error,
       });
     });
-  let update = {};
-  const filter = { _id: "64f33f0d3ed69d5cfdffab5f" };
-  if (newStudent.items) {
-    if (newStudent.items.includes("Pencil")) update.pencil = "1";
-    if (newStudent.items.includes("Bag")) update.bag = "1";
-    if (newStudent.items.includes("Student Abacus")) update.studentAbacus = "1";
-    if (newStudent.items.includes("Listening Ability"))
-      update.listeningAbility = "1";
-    if (newStudent.items.includes("Progress Card")) update.progressCard = "1";
+  // UPDATE STOCKS
+  try {
+    let tshirt = "tshirt" + newStudent.tShirt;
+    await Itemlist.updateMany(
+      { name: { $in: ["pencil", "listeningAbility"] } },
+      { $inc: { count: 3 } }
+    );
+    console.log(tshirt);
+    if (newStudent.tShirt != 0) {
+      await Itemlist.updateOne({ name: tshirt }, { $inc: { count: 1 } });
+    }
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err,
+    });
   }
-  if (newStudent.tShirt) {
-    if (newStudent.tShirt == "8") update.tshirtsize8 = "1";
-    if (newStudent.tShirt == "12") update.tshirtsize12 = "1";
-    if (newStudent.tShirt == "16") update.tshirtsize16 = "1";
-  }
-  // try {
-  //   let updateData = await Itemlist.findOneAndUpdate(filter, update);
-  //   res.send(JSON.stringify({ status: true, message: "Items updated!" }));
-  // } catch (err) {
-  //   res.status(400).json({
-  //     status: false,
-  //     message: err,
-  //   });
-  // }
-  console.log("update", update);
 });
 //GET ALL STUDENTS
 route.post("/getallstudents", async (req, res) => {
