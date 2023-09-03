@@ -251,20 +251,25 @@ route.post("/getallitems", async (req, res, next) => {
   }
 });
 // UPDATE STOCK
-// route.post("/editItem", async (req, res, next) => {
-//   let id = req.body.id;
-//   console.log(updateData);
-//   try {
-//     const filter = { _id: "64f33f0d3ed69d5cfdffab5f" };
-//     let updatedData = await Itemlist.findOneAndUpdate(filter, updateData);
-//     res.send(JSON.stringify({ status: true, message: "Items updated!" }));
-//   } catch (err) {
-//     res.status(400).json({
-//       status: false,
-//       message: err,
-//     });
-//   }
-// });
+route.post("/editItem", async (req, res, next) => {
+  let id = req.body.id;
+  let count = req.body.count;
+  try {
+    const filter = { _id: id };
+    let data = await Itemlist.findOneAndUpdate(filter);
+    let updatedCount = data.count + count;
+    let updateData = {
+      count: updatedCount,
+    };
+    let updatedData = await Itemlist.findOneAndUpdate(filter, updateData);
+    res.send(JSON.stringify({ status: true, message: "Items updated!" }));
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err,
+    });
+  }
+});
 // HELPER FUNCTIONS
 async function generateID() {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
