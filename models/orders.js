@@ -5,12 +5,16 @@ const ordersSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  currentLevel: {
+    type: String,
+    required: true,
+  },
   futureLevel: {
     type: String,
     required: true,
   },
   items: {
-    type: String,
+    type: [String],
     required: true,
   },
   createdAt: {

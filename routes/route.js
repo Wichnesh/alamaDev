@@ -290,6 +290,7 @@ route.post("/editItem", async (req, res, next) => {
 route.post("/order", async (req, res) => {
   let newOrder = Orderslist({
     studentID: req.body.studentID,
+    currentLevel: req.body.currentLevel,
     futureLevel: req.body.futureLevel,
     items: req.body.items,
   });
@@ -309,9 +310,24 @@ route.post("/order", async (req, res) => {
     });
   try {
     await Itemlist.updateMany(
-      { name: { $in: newOrder.futureLevel } },
+      { name: { $in: newOrder.items } },
       { $inc: { count: -1 } }
     );
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err,
+    });
+  }
+  // CHANGE STUDENT LEVEL
+  let studentIDReq = req.body.studentID;
+  try {
+    const filter = { studentID: studentIDReq };
+    let updateData = {
+      level: newOrder.futureLevel,
+    };
+    let updatedData = await Studentlist.findOneAndUpdate(filter, updateData);
+    res.send(JSON.stringify({ status: true, message: "Student updated!" }));
   } catch (err) {
     res.status(400).json({
       status: false,
@@ -339,6 +355,27 @@ route.post("/getallorders", async (req, res) => {
 route.post("/getalltransaction", async (req, res) => {
   try {
     let allTransaction = await Transactionlist.find({}, { __v: 0 });
+    if (allTransaction) {
+      res.status(200).json({
+        status: true,
+        data: allTransaction,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      status: false,
+      message: "DB error",
+    });
+  }
+});
+route.post("/getitemtransaction", async (req, res) => {
+  let itemID = req.body.id;
+  try {
+    let allTransaction = await Transactionlist.find(
+      { _id: itemID },
+      { __v: 0 }
+    );
     if (allTransaction) {
       res.status(200).json({
         status: true,
