@@ -5,6 +5,7 @@ var Franchiselist = require("../models/franchise");
 var Studentlist = require("../models/students");
 var Itemlist = require("../models/items");
 var Transactionlist = require("../models/transaction");
+var Orderslist = require("../models/orders");
 const mongoose = require("mongoose");
 const AutoIncrement = require("mongoose-sequence")(mongoose);
 const saltRounds = 10;
@@ -166,27 +167,28 @@ route.post("/student-reg", async (req, res) => {
       message: err,
     });
   }
-  //CREATE TRANSACTION
-  // if (Transactionlist.count() > 0) {
-  //   let lastElam = Transactionlist.find().sort({ _id: -1 }).limit(1);
-  //   console.log(lastElam);
-  // }
-  // let transactions = [];
-  // newStudent.items.forEach((item) => {
-  //   let newTransaction = {
-  //     franchiseName: newStudent.franchise,
-  //     itemName: item,
-  //     quantity: 1,
-  //   };
-  //   transactions.push(newTransaction);
-  // });
-  // Transactionlist.insertMany(transactions)
-  //   .then(function () {
-  //     console.log("Transaction inserted");
-  //   })
-  //   .catch(function (error) {
-  //     console.log(error);
-  //   });
+  // CREATE TRANSACTION
+  let transactions = [];
+  newStudent.items.forEach(async (item) => {
+    let newTransaction = {
+      studentName: newStudent.studentName,
+      studentID: newStudent.studentID,
+      franchiseName: newStudent.franchise,
+      itemName: item,
+      quantity: -1,
+    };
+    transactions.push(newTransaction);
+  });
+  setTimeout(() => {
+    console.log(transactions);
+    Transactionlist.insertMany(transactions)
+      .then(function () {
+        console.log("Transaction inserted");
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }, 4000);
 });
 //GET ALL STUDENTS
 route.post("/getallstudents", async (req, res) => {
@@ -281,6 +283,73 @@ route.post("/editItem", async (req, res, next) => {
     res.status(400).json({
       status: false,
       message: err,
+    });
+  }
+});
+//CREATE ORDERS
+route.post("/order", async (req, res) => {
+  let newOrder = Orderslist({
+    studentID: req.body.studentID,
+    futureLevel: req.body.futureLevel,
+    items: req.body.items,
+  });
+  newOrder
+    .save()
+    .then(() => {
+      res.status(200).json({
+        status: true,
+        message: "Order added successfully!",
+      });
+    })
+    .catch((error) => {
+      res.status(400).json({
+        status: false,
+        error: error,
+      });
+    });
+  try {
+    await Itemlist.updateMany(
+      { name: { $in: newOrder.futureLevel } },
+      { $inc: { count: -1 } }
+    );
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err,
+    });
+  }
+});
+route.post("/getallorders", async (req, res) => {
+  try {
+    let allOrders = await Orderslist.find({}, { __v: 0 });
+    if (allOrders) {
+      res.status(200).json({
+        status: true,
+        data: allOrders,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      status: false,
+      message: "DB error",
+    });
+  }
+});
+route.post("/getalltransaction", async (req, res) => {
+  try {
+    let allTransaction = await Transactionlist.find({}, { __v: 0 });
+    if (allTransaction) {
+      res.status(200).json({
+        status: true,
+        data: allTransaction,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      status: false,
+      message: "DB error",
     });
   }
 });

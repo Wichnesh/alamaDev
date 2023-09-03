@@ -1,11 +1,15 @@
 const mongoose = require("mongoose");
 
 const transactionSchema = new mongoose.Schema({
-  transactionID: {
+  franchiseName: {
     type: String,
     required: true,
   },
-  franchiseName: {
+  studentName: {
+    type: String,
+    required: true,
+  },
+  studentID: {
     type: String,
     required: true,
   },
@@ -16,6 +20,14 @@ const transactionSchema = new mongoose.Schema({
   quantity: {
     type: Number,
     required: true,
+  },
+  createdDate: {
+    type: Date,
+    default: new Date().toLocaleDateString("en-US"),
+  },
+  currentQuantity: {
+    type: Number,
+    // required: true,
   },
 });
 
