@@ -4,6 +4,9 @@ const jwt = require("jsonwebtoken");
 var Franchiselist = require("../models/franchise");
 var Studentlist = require("../models/students");
 var Itemlist = require("../models/items");
+var Transactionlist = require("../models/transaction");
+const mongoose = require("mongoose");
+const AutoIncrement = require("mongoose-sequence")(mongoose);
 const saltRounds = 10;
 
 // LOGINUSER
@@ -130,7 +133,7 @@ route.post("/student-reg", async (req, res) => {
     tShirt: req.body.tShirt,
     program: req.body.program,
     cost: req.body.cost,
-    paymentID:  req.body.paymentID
+    paymentID: req.body.paymentID,
   });
   newStudent
     .save()
@@ -150,8 +153,8 @@ route.post("/student-reg", async (req, res) => {
   try {
     let tshirt = "tshirt" + newStudent.tShirt;
     await Itemlist.updateMany(
-      { name: { $in: ["pencil", "listeningAbility"] } },
-      { $inc: { count: 3 } }
+      { name: { $in: newStudent.items } },
+      { $inc: { count: -1 } }
     );
     console.log(tshirt);
     if (newStudent.tShirt != 0) {
@@ -163,6 +166,27 @@ route.post("/student-reg", async (req, res) => {
       message: err,
     });
   }
+  //CREATE TRANSACTION
+  // if (Transactionlist.count() > 0) {
+  //   let lastElam = Transactionlist.find().sort({ _id: -1 }).limit(1);
+  //   console.log(lastElam);
+  // }
+  // let transactions = [];
+  // newStudent.items.forEach((item) => {
+  //   let newTransaction = {
+  //     franchiseName: newStudent.franchise,
+  //     itemName: item,
+  //     quantity: 1,
+  //   };
+  //   transactions.push(newTransaction);
+  // });
+  // Transactionlist.insertMany(transactions)
+  //   .then(function () {
+  //     console.log("Transaction inserted");
+  //   })
+  //   .catch(function (error) {
+  //     console.log(error);
+  //   });
 });
 //GET ALL STUDENTS
 route.post("/getallstudents", async (req, res) => {

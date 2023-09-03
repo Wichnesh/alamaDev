@@ -6,6 +6,14 @@ const transactionSchema = new mongoose.Schema({
     required: true,
   },
   franchiseName: {
+    type: String,
+    required: true,
+  },
+  itemName: {
+    type: String,
+    required: true,
+  },
+  quantity: {
     type: Number,
     required: true,
   },
