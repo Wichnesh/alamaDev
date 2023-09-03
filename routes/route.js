@@ -370,10 +370,10 @@ route.post("/getalltransaction", async (req, res) => {
   }
 });
 route.post("/getitemtransaction", async (req, res) => {
-  let itemID = req.body.id;
+  let itemNameReq = req.body.name;
   try {
     let allTransaction = await Transactionlist.find(
-      { _id: itemID },
+      { itemName: itemNameReq },
       { __v: 0 }
     );
     if (allTransaction) {
