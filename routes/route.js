@@ -119,7 +119,7 @@ route.post("/student-reg", async (req, res) => {
     studentName: req.body.studentName,
     address: req.body.address,
     state: req.body.state,
-    city: req.body.city,
+    district: req.body.district,
     mobileNumber: req.body.mobileNumber,
     email: req.body.email,
     fatherName: req.body.fatherName,

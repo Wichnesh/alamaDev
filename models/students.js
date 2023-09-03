@@ -18,11 +18,11 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  state: {
+  district: {
     type: String,
     required: true,
   },
-  city: {
+  state: {
     type: String,
     required: true,
   },
