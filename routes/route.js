@@ -314,10 +314,11 @@ route.post("/order", async (req, res) => {
       { $inc: { count: -1 } }
     );
   } catch (err) {
-    res.status(400).json({
-      status: false,
-      message: err,
-    });
+    // res.status(400).json({
+    //   status: false,
+    //   message: err,
+    // });
+    console.log(err);
   }
   // CHANGE STUDENT LEVEL
   let studentIDReq = req.body.studentID;
@@ -327,12 +328,10 @@ route.post("/order", async (req, res) => {
       level: newOrder.futureLevel,
     };
     let updatedData = await Studentlist.findOneAndUpdate(filter, updateData);
-    res.send(JSON.stringify({ status: true, message: "Student updated!" }));
+    //res.send(JSON.stringify({ status: true, message: "Student updated!" }));
+    console.log("Student updated!");
   } catch (err) {
-    res.status(400).json({
-      status: false,
-      message: err,
-    });
+    console.log(err);
   }
 });
 route.post("/getallorders", async (req, res) => {
