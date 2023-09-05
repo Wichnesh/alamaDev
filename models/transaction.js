@@ -3,15 +3,12 @@ const mongoose = require("mongoose");
 const transactionSchema = new mongoose.Schema({
   franchiseName: {
     type: String,
-    required: true,
   },
   studentName: {
     type: String,
-    required: true,
   },
   studentID: {
     type: String,
-    required: true,
   },
   itemName: {
     type: String,

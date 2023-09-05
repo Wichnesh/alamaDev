@@ -7,8 +7,6 @@ var Itemlist = require("../models/items");
 var Transactionlist = require("../models/transaction");
 var Orderslist = require("../models/orders");
 const mongoose = require("mongoose");
-const AutoIncrement = require("mongoose-sequence")(mongoose);
-const saltRounds = 10;
 
 // LOGINUSER
 route.post("/login", async (req, res, next) => {
@@ -40,11 +38,16 @@ route.post("/login", async (req, res, next) => {
 });
 // GENERATE ID
 route.post("/generateID", async (req, res, next) => {
-  let genID = await generateID();
+  let genID = await newFranchiseID();
   res.send(JSON.stringify({ status: true, data: genID }));
 });
 route.post("/generate-studentid", async (req, res, next) => {
-  let genID = await generateStudentID();
+  let userName = req.body.username;
+  let currentFranchise = await Franchiselist.find({ username: userName });
+  let genID = await newStudentID(
+    currentFranchise[0].name,
+    currentFranchise[0].state
+  );
   res.send(JSON.stringify({ status: true, data: genID.toString() }));
 });
 // FRANCHISE REGISTRATION
@@ -78,7 +81,10 @@ route.post("/franchise-reg", async (req, res, next) => {
 // GET ALL FRANCHISE
 route.post("/getallfranchise", async (req, res) => {
   try {
-    let allFranchise = await Franchiselist.find({ isAdmin: false }, { __v: 0 });
+    let basicQuery = { isAdmin: false };
+    let paramQuery = req.query;
+    let filter = Object.assign(basicQuery, paramQuery);
+    let allFranchise = await Franchiselist.find(filter, { __v: 0 });
     if (allFranchise) {
       res.status(200).json({
         status: true,
@@ -193,7 +199,8 @@ route.post("/student-reg", async (req, res) => {
 //GET ALL STUDENTS
 route.post("/getallstudents", async (req, res) => {
   try {
-    let allStudent = await Studentlist.find({}, { __v: 0 });
+    let paramQuery = req.query;
+    let allStudent = await Studentlist.find(paramQuery, { __v: 0 });
     if (allStudent) {
       res.status(200).json({
         status: true,
@@ -272,11 +279,13 @@ route.post("/getallitems", async (req, res, next) => {
 route.post("/editItem", async (req, res, next) => {
   let id = req.body.id;
   let countReq = req.body.count;
+  let itemFind;
   try {
     const filter = { _id: id };
     let updateData = {
       count: countReq,
     };
+    itemFind = await Itemlist.find(filter);
     let updatedData = await Itemlist.findOneAndUpdate(filter, updateData);
     res.send(JSON.stringify({ status: true, message: "Items updated!" }));
   } catch (err) {
@@ -285,6 +294,15 @@ route.post("/editItem", async (req, res, next) => {
       message: err,
     });
   }
+  // CREATE TRANSACTION
+  let newTransaction = Transactionlist({
+    studentName: "",
+    studentID: "",
+    franchiseName: "ADMIN",
+    itemName: itemFind[0].name,
+    quantity: countReq,
+  });
+  newTransaction.save();
 });
 //CREATE ORDERS
 route.post("/order", async (req, res) => {
@@ -353,7 +371,11 @@ route.post("/getallorders", async (req, res) => {
 });
 route.post("/getalltransaction", async (req, res) => {
   try {
-    let allTransaction = await Transactionlist.find({}, { __v: 0 });
+    let allTransaction = await Transactionlist.find(
+      {},
+      { __v: 0 },
+      { sort: { createdDate: -1 } }
+    );
     if (allTransaction) {
       res.status(200).json({
         status: true,
@@ -366,6 +388,29 @@ route.post("/getalltransaction", async (req, res) => {
       status: false,
       message: "DB error",
     });
+  }
+});
+route.post("/getFilterTransaction", async (req, res, next) => {
+  try {
+    let { startDate, endDate } = req.body;
+    if (startDate === "" || endDate === "") {
+      return res.status(400).json({
+        status: "failure",
+        message: "Please ensure you pick two dates",
+      });
+    }
+    const transactions = await Transactionlist.find({
+      createdDate: {
+        $gte: new Date(new Date(startDate).setHours(00, 00, 00)),
+        $lt: new Date(new Date(endDate).setHours(23, 59, 59)),
+      },
+    });
+    res.status(201).json({
+      status: "true",
+      data: transactions,
+    });
+  } catch (err) {
+    console.log(err);
   }
 });
 route.post("/getitemtransaction", async (req, res) => {
@@ -401,6 +446,24 @@ async function generateID() {
     generateID();
   }
   return genID;
+}
+async function newFranchiseID() {
+  let franchises = await Franchiselist.find({});
+  let franchiseCount = franchises.length;
+  let newID = "AF0000" + franchiseCount;
+  return newID;
+}
+async function newStudentID(stateName, franchiseName) {
+  console.log(stateName);
+  console.log(franchiseName);
+  let studentsList = await Studentlist.find({});
+  let studentsCount = studentsList.length;
+  let studentID =
+    stateName.toUpperCase().slice(0, 2) +
+    franchiseName.toUpperCase().slice(0, 2) +
+    "0000" +
+    studentsCount;
+  return studentID;
 }
 async function generateStudentID() {
   let studentsList = await Studentlist.find({});
