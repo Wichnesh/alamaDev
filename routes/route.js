@@ -8,6 +8,12 @@ var Transactionlist = require("../models/transaction");
 var Orderslist = require("../models/orders");
 const mongoose = require("mongoose");
 
+let totalItems;
+itemsUpdate();
+async function itemsUpdate() {
+  totalItems = await Itemlist.find({});
+}
+
 // LOGINUSER
 route.post("/login", async (req, res, next) => {
   let userName = req.body.userName;
@@ -167,6 +173,7 @@ route.post("/student-reg", async (req, res) => {
     if (newStudent.tShirt != 0) {
       await Itemlist.updateOne({ name: tshirt }, { $inc: { count: 1 } });
     }
+    itemsUpdate();
   } catch (err) {
     res.status(400).json({
       status: false,
@@ -175,6 +182,7 @@ route.post("/student-reg", async (req, res) => {
   }
   // CREATE TRANSACTION
   let transactions = [];
+
   newStudent.items.forEach(async (item) => {
     let newTransaction = {
       studentName: newStudent.studentName,
@@ -182,6 +190,7 @@ route.post("/student-reg", async (req, res) => {
       franchiseName: newStudent.franchise,
       itemName: item,
       quantity: -1,
+      currentQuantity: totalItems.find((it) => it.name === item).count,
     };
     transactions.push(newTransaction);
   });
@@ -287,6 +296,7 @@ route.post("/editItem", async (req, res, next) => {
     };
     itemFind = await Itemlist.find(filter);
     let updatedData = await Itemlist.findOneAndUpdate(filter, updateData);
+    itemsUpdate();
     res.send(JSON.stringify({ status: true, message: "Items updated!" }));
   } catch (err) {
     res.status(400).json({
@@ -301,6 +311,8 @@ route.post("/editItem", async (req, res, next) => {
     franchiseName: "ADMIN",
     itemName: itemFind[0].name,
     quantity: countReq,
+    currentQuantity: totalItems.find((it) => it.name === itemFind[0].name)
+      .count,
   });
   newTransaction.save();
 });
@@ -331,6 +343,7 @@ route.post("/order", async (req, res) => {
       { name: { $in: newOrder.items } },
       { $inc: { count: -1 } }
     );
+    itemsUpdate();
   } catch (err) {
     // res.status(400).json({
     //   status: false,
@@ -374,7 +387,7 @@ route.post("/getalltransaction", async (req, res) => {
     let allTransaction = await Transactionlist.find(
       {},
       { __v: 0 },
-      { sort: { createdDate: -1 } }
+      { sort: { _id: -1 } }
     );
     if (allTransaction) {
       res.status(200).json({
