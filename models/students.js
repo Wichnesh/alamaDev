@@ -68,7 +68,7 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  certificate:{
+  certificates:{
     type: [String]
   }
   levelOrders: [{
