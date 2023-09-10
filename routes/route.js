@@ -326,7 +326,8 @@ route.post("/order", async (req, res) => {
   let newLevelUpdate = [{
     level: req.body.futureLevel,
     date: new Date().toLocaleDateString("en-US")
-  }]
+  }];
+  let reqCertificate = req.body.certificate;
   let newOrder = Orderslist({
     studentID: req.body.studentID,
     currentLevel: req.body.currentLevel,
@@ -367,7 +368,7 @@ route.post("/order", async (req, res) => {
     let updateData = {
       level: newOrder.futureLevel,
     };
-    let updatedData = await Studentlist.findOneAndUpdate(filter, {level:newOrder.futureLevel, "$push":{"levelOrders": newLevelUpdate, "certificates":req.body.certificate}});
+    let updatedData = await Studentlist.findOneAndUpdate(filter, {level:newOrder.futureLevel, "$push":{"levelOrders": newLevelUpdate, "certificates": reqCertificate}});
     //res.send(JSON.stringify({ status: true, message: "Student updated!" }));
     console.log("Student updated!");
   } catch (err) {
