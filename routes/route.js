@@ -129,6 +129,10 @@ route.post("/approveUser", verifyToken, (req, res, next) => {
 });
 //STUDENT REGISTRATION
 route.post("/student-reg", async (req, res) => {
+  let newLevelUpdate = [{
+    level: req.body.level,
+    date: new Date().toLocaleDateString("en-US")
+  }]
   let newStudent = Studentlist({
     studentID: req.body.studentID,
     enrollDate: req.body.enrollDate,
@@ -147,6 +151,7 @@ route.post("/student-reg", async (req, res) => {
     program: req.body.program,
     cost: req.body.cost,
     paymentID: req.body.paymentID,
+    levelOrders: newLevelUpdate
   });
   newStudent
     .save()
