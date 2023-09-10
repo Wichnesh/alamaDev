@@ -68,10 +68,10 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // levelOrders: [{
-  //       level: String,
-  //       date: Date
-  //   }]
+  levelOrders: [{
+        level: String,
+        date: Date
+    }]
 });
 
 const Studentlist = (module.exports = mongoose.model(
