@@ -332,7 +332,8 @@ route.post("/order", async (req, res) => {
     studentID: req.body.studentID,
     currentLevel: req.body.currentLevel,
     futureLevel: req.body.futureLevel,
-    items: req.body.items
+    items: req.body.items,
+    program: req.body.program
   });
   newOrder
     .save()
