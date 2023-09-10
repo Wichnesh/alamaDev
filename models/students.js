@@ -70,7 +70,7 @@ const studentSchema = new mongoose.Schema({
   },
   certificates:{
     type: [String]
-  }
+  },
   levelOrders: [{
         level: String,
         date: Date
