@@ -131,6 +131,7 @@ route.post("/approveUser", verifyToken, (req, res, next) => {
 route.post("/student-reg", async (req, res) => {
   let newLevelUpdate = [{
     level: req.body.level,
+    program: req.body.program,
     date: new Date().toLocaleDateString("en-US")
   }]
   let newStudent = Studentlist({
@@ -325,6 +326,7 @@ route.post("/editItem", async (req, res, next) => {
 route.post("/order", async (req, res) => {
   let newLevelUpdate = [{
     level: req.body.futureLevel,
+    program: req.body.program,
     date: new Date().toLocaleDateString("en-US")
   }];
   let reqCertificate = req.body.certificate;
