@@ -323,6 +323,10 @@ route.post("/editItem", async (req, res, next) => {
 });
 //CREATE ORDERS
 route.post("/order", async (req, res) => {
+  let newLevelUpdate = [{
+    level: req.body.futureLevel,
+    date: new Date().toLocaleDateString("en-US")
+  }]
   let newOrder = Orderslist({
     studentID: req.body.studentID,
     currentLevel: req.body.currentLevel,
@@ -363,7 +367,7 @@ route.post("/order", async (req, res) => {
     let updateData = {
       level: newOrder.futureLevel,
     };
-    let updatedData = await Studentlist.findOneAndUpdate(filter, updateData);
+    let updatedData = await Studentlist.findOneAndUpdate(filter, {level:newOrder.futureLevel, "$push":{"levelOrders": newLevelUpdate}});
     //res.send(JSON.stringify({ status: true, message: "Student updated!" }));
     console.log("Student updated!");
   } catch (err) {
