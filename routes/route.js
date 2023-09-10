@@ -331,7 +331,7 @@ route.post("/order", async (req, res) => {
     studentID: req.body.studentID,
     currentLevel: req.body.currentLevel,
     futureLevel: req.body.futureLevel,
-    items: req.body.items,
+    items: req.body.items
   });
   newOrder
     .save()
@@ -367,7 +367,7 @@ route.post("/order", async (req, res) => {
     let updateData = {
       level: newOrder.futureLevel,
     };
-    let updatedData = await Studentlist.findOneAndUpdate(filter, {level:newOrder.futureLevel, "$push":{"levelOrders": newLevelUpdate}});
+    let updatedData = await Studentlist.findOneAndUpdate(filter, {level:newOrder.futureLevel, "$push":{"levelOrders": newLevelUpdate, "certificates":req.body.certificate}});
     //res.send(JSON.stringify({ status: true, message: "Student updated!" }));
     console.log("Student updated!");
   } catch (err) {
