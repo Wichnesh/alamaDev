@@ -73,6 +73,7 @@ const studentSchema = new mongoose.Schema({
   },
   levelOrders: [{
         level: String,
+        program: String,
         date: Date
     }]
 });
