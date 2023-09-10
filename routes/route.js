@@ -369,7 +369,7 @@ route.post("/order", async (req, res) => {
     let updateData = {
       level: newOrder.futureLevel,
     };
-    let updatedData = await Studentlist.findOneAndUpdate(filter, {level:newOrder.futureLevel, "$push":{"levelOrders": newLevelUpdate, "certificates": reqCertificate}});
+    let updatedData = await Studentlist.findOneAndUpdate(filter, {level:newOrder.futureLevel,program: newOrder.program, "$push":{"levelOrders": newLevelUpdate, "certificates": reqCertificate}});
     //res.send(JSON.stringify({ status: true, message: "Student updated!" }));
     console.log("Student updated!");
   } catch (err) {
