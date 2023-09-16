@@ -419,7 +419,7 @@ route.post("/getFilterTransaction", async (req, res, next) => {
       },
     });
     res.status(201).json({
-      status: "true",
+      status: true,
       data: transactions,
     });
   } catch (err) {
