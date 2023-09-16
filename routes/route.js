@@ -48,6 +48,9 @@ route.post("/generateID", async (req, res, next) => {
   let genID = await newFranchiseID();
   res.send(JSON.stringify({ status: true, data: genID }));
 });
+// route.post("/check", (req, res) => {
+//   console.log(req.body.data[0]);
+// });
 route.post("/generate-studentid", async (req, res, next) => {
   let userName = req.body.username;
   let currentFranchise = await Franchiselist.find({ username: userName });
@@ -260,7 +263,7 @@ route.post("/student-reg", async (req, res) => {
 });
 //MULTIPLE STUDENT REGISTRATION
 route.post("/multiplestudents", async (req, res) => {
-  for (let i = 0; i < req.body.length; i++) {
+  for (let i = 0; i < req.body.data.length; i++) {
     let newLevelUpdate = [
       {
         level: req.body.data[i].level,
