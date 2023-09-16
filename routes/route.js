@@ -369,8 +369,11 @@ route.post("/getallstudents", async (req, res) => {
 });
 route.post("/getcartstudents", async (req, res) => {
   try {
-    let paramQuery = req.query;
-    let allStudent = await StudentCartlist.find(paramQuery, { __v: 0 });
+    let fusername = req.body.username;
+    let allStudent = await StudentCartlist.find(
+      { franchise: fusername },
+      { __v: 0 }
+    );
     if (allStudent) {
       res.status(200).json({
         status: true,
