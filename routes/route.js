@@ -213,6 +213,95 @@ route.post("/student-reg", async (req, res) => {
       });
   }, 4000);
 });
+//MULTIPLE STUDENT REGISTRATION
+route.post("/multiplestudents", async (req, res) => {
+  for (let i = 0; i < req.body.length; i++) {
+    let newLevelUpdate = [
+      {
+        level: req.body[i].level,
+        program: req.body[i].program,
+        date: new Date().toLocaleDateString("en-US"),
+      },
+    ];
+    let newStudent = Studentlist({
+      studentID: req.body[i].studentID,
+      enrollDate: req.body[i].enrollDate,
+      studentName: req.body[i].studentName,
+      address: req.body[i].address,
+      state: req.body[i].state,
+      district: req.body[i].district,
+      mobileNumber: req.body[i].mobileNumber,
+      email: req.body[i].email,
+      fatherName: req.body[i].fatherName,
+      motherName: req.body[i].motherName,
+      franchise: req.body[i].franchise,
+      level: req.body[i].level,
+      items: req.body[i].items,
+      tShirt: req.body[i].tShirt,
+      program: req.body[i].program,
+      cost: req.body[i].cost,
+      paymentID: req.body[i].paymentID,
+      levelOrders: newLevelUpdate,
+    });
+    newStudent
+      .save()
+      .then(() => {
+        console.log("Added - ", i);
+      })
+      .catch((error) => {
+        res.status(400).json({
+          status: false,
+          error: error,
+        });
+      });
+    // UPDATE STOCKS
+    try {
+      let tshirt = "tshirt" + newStudent.tShirt;
+      await Itemlist.updateMany(
+        { name: { $in: newStudent.items } },
+        { $inc: { count: -1 } }
+      );
+      console.log(tshirt);
+      if (newStudent.tShirt != 0) {
+        await Itemlist.updateOne({ name: tshirt }, { $inc: { count: 1 } });
+      }
+      itemsUpdate();
+    } catch (err) {
+      res.status(400).json({
+        status: false,
+        message: err,
+      });
+    }
+    // CREATE TRANSACTION
+    let transactions = [];
+
+    newStudent.items.forEach(async (item) => {
+      let newTransaction = {
+        studentName: newStudent.studentName,
+        studentID: newStudent.studentID,
+        franchiseName: newStudent.franchise,
+        itemName: item,
+        quantity: -1,
+        currentQuantity: totalItems.find((it) => it.name === item).count,
+      };
+      transactions.push(newTransaction);
+    });
+    setTimeout(() => {
+      console.log(transactions);
+      Transactionlist.insertMany(transactions)
+        .then(function () {
+          console.log("Transaction inserted");
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }, 4000);
+  }
+  res.status(200).json({
+    status: true,
+    data: `${req.body.length} students added!`,
+  });
+});
 //GET ALL STUDENTS
 route.post("/getallstudents", async (req, res) => {
   try {
