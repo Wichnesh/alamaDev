@@ -3,6 +3,7 @@ var route = express.Router();
 const jwt = require("jsonwebtoken");
 var Franchiselist = require("../models/franchise");
 var Studentlist = require("../models/students");
+var StudentCartlist = require("../models/studentsCart");
 var Itemlist = require("../models/items");
 var Transactionlist = require("../models/transaction");
 var Orderslist = require("../models/orders");
@@ -127,6 +128,50 @@ route.post("/approveUser", verifyToken, (req, res, next) => {
     });
   }
 });
+//STUDENT UNPAID REGISTRATION
+route.post("/studentcartreg", async (req, res) => {
+  let newLevelUpdate = [
+    {
+      level: req.body.level,
+      program: req.body.program,
+      date: new Date().toLocaleDateString("en-US"),
+    },
+  ];
+  let newStudent = StudentCartlist({
+    studentID: req.body.studentID,
+    enrollDate: req.body.enrollDate,
+    studentName: req.body.studentName,
+    address: req.body.address,
+    state: req.body.state,
+    district: req.body.district,
+    mobileNumber: req.body.mobileNumber,
+    email: req.body.email,
+    fatherName: req.body.fatherName,
+    motherName: req.body.motherName,
+    franchise: req.body.franchise,
+    level: req.body.level,
+    items: req.body.items,
+    tShirt: req.body.tShirt,
+    program: req.body.program,
+    cost: req.body.cost,
+    paymentID: req.body.paymentID,
+    levelOrders: newLevelUpdate,
+  });
+  newStudent
+    .save()
+    .then(() => {
+      res.status(200).json({
+        status: true,
+        message: "Added student to cart!",
+      });
+    })
+    .catch((error) => {
+      res.status(400).json({
+        status: false,
+        error: error,
+      });
+    });
+});
 //STUDENT REGISTRATION
 route.post("/student-reg", async (req, res) => {
   let newLevelUpdate = [
@@ -218,29 +263,29 @@ route.post("/multiplestudents", async (req, res) => {
   for (let i = 0; i < req.body.length; i++) {
     let newLevelUpdate = [
       {
-        level: req.body[i].level,
-        program: req.body[i].program,
+        level: req.body.data[i].level,
+        program: req.body.data[i].program,
         date: new Date().toLocaleDateString("en-US"),
       },
     ];
     let newStudent = Studentlist({
-      studentID: req.body[i].studentID,
-      enrollDate: req.body[i].enrollDate,
-      studentName: req.body[i].studentName,
-      address: req.body[i].address,
-      state: req.body[i].state,
-      district: req.body[i].district,
-      mobileNumber: req.body[i].mobileNumber,
-      email: req.body[i].email,
-      fatherName: req.body[i].fatherName,
-      motherName: req.body[i].motherName,
-      franchise: req.body[i].franchise,
-      level: req.body[i].level,
-      items: req.body[i].items,
-      tShirt: req.body[i].tShirt,
-      program: req.body[i].program,
-      cost: req.body[i].cost,
-      paymentID: req.body[i].paymentID,
+      studentID: req.body.data[i].studentID,
+      enrollDate: req.body.data[i].enrollDate,
+      studentName: req.body.data[i].studentName,
+      address: req.body.data[i].address,
+      state: req.body.data[i].state,
+      district: req.body.data[i].district,
+      mobileNumber: req.body.data[i].mobileNumber,
+      email: req.body.data[i].email,
+      fatherName: req.body.data[i].fatherName,
+      motherName: req.body.data[i].motherName,
+      franchise: req.body.data[i].franchise,
+      level: req.body.data[i].level,
+      items: req.body.data[i].items,
+      tShirt: req.body.data[i].tShirt,
+      program: req.body.data[i].program,
+      cost: req.body.data[i].cost,
+      paymentID: req.body.data[i].paymentID,
       levelOrders: newLevelUpdate,
     });
     newStudent
@@ -302,11 +347,30 @@ route.post("/multiplestudents", async (req, res) => {
     data: `${req.body.length} students added!`,
   });
 });
+
 //GET ALL STUDENTS
 route.post("/getallstudents", async (req, res) => {
   try {
     let paramQuery = req.query;
     let allStudent = await Studentlist.find(paramQuery, { __v: 0 });
+    if (allStudent) {
+      res.status(200).json({
+        status: true,
+        data: allStudent,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      status: false,
+      message: "DB error",
+    });
+  }
+});
+route.post("/getcartstudents", async (req, res) => {
+  try {
+    let paramQuery = req.query;
+    let allStudent = await StudentCartlist.find(paramQuery, { __v: 0 });
     if (allStudent) {
       res.status(200).json({
         status: true,
@@ -580,7 +644,8 @@ async function newStudentID(stateName, franchiseName) {
   console.log(stateName);
   console.log(franchiseName);
   let studentsList = await Studentlist.find({});
-  let studentsCount = studentsList.length;
+  let studentsCartList = await StudentCartlist.find({});
+  let studentsCount = studentsList.length + studentsCartList.length;
   let studentID =
     stateName.toUpperCase().slice(0, 2) +
     franchiseName.toUpperCase().slice(0, 2) +
