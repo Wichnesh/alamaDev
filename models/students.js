@@ -68,6 +68,14 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  certificates:{
+    type: [String]
+  },
+  levelOrders: [{
+        level: String,
+        program: String,
+        date: Date
+    }]
 });
 
 const Studentlist = (module.exports = mongoose.model(

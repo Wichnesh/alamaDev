@@ -17,6 +17,9 @@ const ordersSchema = new mongoose.Schema({
     type: [String],
     required: true,
   },
+  program:{
+    type: String
+  },
   createdAt: {
     type: Date,
     default: new Date().toLocaleDateString("en-US"),

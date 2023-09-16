@@ -129,6 +129,11 @@ route.post("/approveUser", verifyToken, (req, res, next) => {
 });
 //STUDENT REGISTRATION
 route.post("/student-reg", async (req, res) => {
+  let newLevelUpdate = [{
+    level: req.body.level,
+    program: req.body.program,
+    date: new Date().toLocaleDateString("en-US")
+  }]
   let newStudent = Studentlist({
     studentID: req.body.studentID,
     enrollDate: req.body.enrollDate,
@@ -147,6 +152,7 @@ route.post("/student-reg", async (req, res) => {
     program: req.body.program,
     cost: req.body.cost,
     paymentID: req.body.paymentID,
+    levelOrders: newLevelUpdate
   });
   newStudent
     .save()
@@ -318,11 +324,18 @@ route.post("/editItem", async (req, res, next) => {
 });
 //CREATE ORDERS
 route.post("/order", async (req, res) => {
+  let newLevelUpdate = [{
+    level: req.body.futureLevel,
+    program: req.body.program,
+    date: new Date().toLocaleDateString("en-US")
+  }];
+  let reqCertificate = req.body.certificate;
   let newOrder = Orderslist({
     studentID: req.body.studentID,
     currentLevel: req.body.currentLevel,
     futureLevel: req.body.futureLevel,
     items: req.body.items,
+    program: req.body.program
   });
   newOrder
     .save()
@@ -358,7 +371,7 @@ route.post("/order", async (req, res) => {
     let updateData = {
       level: newOrder.futureLevel,
     };
-    let updatedData = await Studentlist.findOneAndUpdate(filter, updateData);
+    let updatedData = await Studentlist.findOneAndUpdate(filter, {level:newOrder.futureLevel,program: newOrder.program, "$push":{"levelOrders": newLevelUpdate, "certificates": reqCertificate}});
     //res.send(JSON.stringify({ status: true, message: "Student updated!" }));
     console.log("Student updated!");
   } catch (err) {
