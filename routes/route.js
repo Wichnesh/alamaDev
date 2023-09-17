@@ -264,6 +264,7 @@ route.post("/student-reg", async (req, res) => {
 });
 //MULTIPLE STUDENT REGISTRATION
 route.post("/multiplestudents", async (req, res) => {
+  console.log(req.body);
   for (let i = 0; i < req.body.data.length; i++) {
     await StudentCartlist.findOneAndRemove({
       studentID: req.body.data[i].studentID,
@@ -295,6 +296,7 @@ route.post("/multiplestudents", async (req, res) => {
       paymentID: req.body.data[i].paymentID,
       levelOrders: newLevelUpdate,
     });
+    console.log("newStudent -> ", newStudent);
     newStudent
       .save()
       .then(() => {
