@@ -8,6 +8,7 @@ var Itemlist = require("../models/items");
 var Transactionlist = require("../models/transaction");
 var Orderslist = require("../models/orders");
 const mongoose = require("mongoose");
+const studentsCart = require("../models/studentsCart");
 
 let totalItems;
 itemsUpdate();
@@ -264,6 +265,9 @@ route.post("/student-reg", async (req, res) => {
 //MULTIPLE STUDENT REGISTRATION
 route.post("/multiplestudents", async (req, res) => {
   for (let i = 0; i < req.body.data.length; i++) {
+    await StudentCartlist.findOneAndRemove({
+      studentID: req.body.data[i].studentID,
+    });
     let newLevelUpdate = [
       {
         level: req.body.data[i].level,
