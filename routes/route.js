@@ -15,7 +15,23 @@ itemsUpdate();
 async function itemsUpdate() {
   totalItems = await Itemlist.find({});
 }
-
+//MAKE ADMIN
+route.post("/makeAdmin", async (req, res, next) => {
+  let { franchiseID } = req.body;
+  try {
+    const filter = { franchiseID: franchiseID };
+    const update = {
+      isAdmin: true,
+    };
+    let updateData = await Franchiselist.findOneAndUpdate(filter, update);
+    res.send(JSON.stringify({ status: true, message: "User made as Admin!" }));
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err,
+    });
+  }
+});
 // LOGINUSER
 route.post("/login", async (req, res, next) => {
   let userName = req.body.userName;

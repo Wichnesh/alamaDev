@@ -9,7 +9,7 @@ var app = express();
 
 const port = process.env.PORT || 3000;
 
-const dbUrl = process.env.MONGODBURL;
+const dbUrl = process.env.MONGOLOCAL;
 const ConnectionParams = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
