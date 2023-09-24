@@ -17,6 +17,9 @@ const ordersSchema = new mongoose.Schema({
     type: [String],
     required: true,
   },
+  franchise:{
+    type: String
+  },
   program:{
     type: String
   },
