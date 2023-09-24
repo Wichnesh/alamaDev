@@ -584,6 +584,30 @@ route.post("/getallorders", async (req, res) => {
     });
   }
 });
+//ORDERS FILTER
+route.post("/filterorder", async (req, res) => {
+  try {
+    let { startDate, endDate } = req.body;
+    if (startDate === "" || endDate === "") {
+      return res.status(400).json({
+        status: false,
+        message: "Please ensure you pick two dates",
+      });
+    }
+    const orders = await Orderslist.find({
+      createdAt: {
+        $gte: new Date(new Date(startDate).setHours(00, 00, 00)),
+        $lt: new Date(new Date(endDate).setHours(23, 59, 59)),
+      },
+    });
+    res.status(201).json({
+      status: true,
+      data: orders,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
 route.post("/getalltransaction", async (req, res) => {
   try {
     let allTransaction = await Transactionlist.find(
