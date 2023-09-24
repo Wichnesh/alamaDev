@@ -41,7 +41,7 @@ route.post("/login", async (req, res, next) => {
     password,
   };
   try {
-    let userCheck = await Franchiselist.findOne({ username: userName });
+    let userCheck = await Franchiselist.findOne({ username: userName.trim() });
     console.log(userCheck);
     if (userCheck) {
       if (userCheck.approve == true && userCheck.password == password) {
@@ -79,6 +79,7 @@ route.post("/generate-studentid", async (req, res, next) => {
 });
 // FRANCHISE REGISTRATION
 route.post("/franchise-reg", async (req, res, next) => {
+  let trimuname = req.body.username
   let newFranchise = Franchiselist({
     franchiseID: req.body.franchiseID,
     name: req.body.name,
@@ -86,7 +87,7 @@ route.post("/franchise-reg", async (req, res, next) => {
     contactNumber: req.body.contactNumber,
     state: req.body.state,
     district: req.body.district,
-    username: req.body.username,
+    username: trimuname.trim(),
     password: req.body.password,
     registerDate: req.body.registerDate,
   });
