@@ -7,48 +7,39 @@ const studentCartSchema = new mongoose.Schema({
     unique: true,
   },
   enrollDate: {
-    type: String,
-    required: true,
+    type: String
   },
   studentName: {
-    type: String,
-    required: true,
+    type: String
   },
   address: {
     type: String,
     required: true,
   },
   district: {
-    type: String,
-    required: true,
+    type: String
   },
   state: {
-    type: String,
-    required: true,
+    type: String
   },
   mobileNumber: {
-    type: String,
-    required: true,
+    type: String
   },
   email: {
-    type: String,
-    required: true,
+    type: String
   },
   fatherName: {
     type: String,
     required: true,
   },
   motherName: {
-    type: String,
-    required: true,
+    type: String
   },
   franchise: {
-    type: String,
-    required: true,
+    type: String
   },
   level: {
-    type: String,
-    required: true,
+    type: String
   },
   items: {
     type: [String],
@@ -57,12 +48,10 @@ const studentCartSchema = new mongoose.Schema({
     type: String,
   },
   program: {
-    type: String,
-    required: true,
+    type: String
   },
   cost: {
-    type: [Number],
-    required: true,
+    type: [Number]
   },
   paymentID: {
     type: String,
