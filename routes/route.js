@@ -521,6 +521,7 @@ route.post("/order", async (req, res) => {
     currentLevel: req.body.currentLevel,
     futureLevel: req.body.futureLevel,
     items: req.body.items,
+    franchise: req.body.franchise,
     program: req.body.program,
   });
   newOrder
