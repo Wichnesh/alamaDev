@@ -13,8 +13,7 @@ const studentCartSchema = new mongoose.Schema({
     type: String
   },
   address: {
-    type: String,
-    required: true,
+    type: String
   },
   district: {
     type: String
@@ -29,8 +28,7 @@ const studentCartSchema = new mongoose.Schema({
     type: String
   },
   fatherName: {
-    type: String,
-    required: true,
+    type: String
   },
   motherName: {
     type: String
