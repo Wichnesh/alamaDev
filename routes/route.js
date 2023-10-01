@@ -522,6 +522,7 @@ route.post("/order", async (req, res) => {
     futureLevel: req.body.futureLevel,
     items: req.body.items,
     franchise: req.body.franchise,
+    enableBtn: req.body.enableBtn,
     program: req.body.program,
   });
   newOrder
@@ -561,6 +562,7 @@ route.post("/order", async (req, res) => {
     let updatedData = await Studentlist.findOneAndUpdate(filter, {
       level: newOrder.futureLevel,
       program: newOrder.program,
+      enableBtn: newOrder.enableBtn,
       $push: { levelOrders: newLevelUpdate, certificates: reqCertificate },
     });
     //res.send(JSON.stringify({ status: true, message: "Student updated!" }));
