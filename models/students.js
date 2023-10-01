@@ -59,6 +59,10 @@ const studentSchema = new mongoose.Schema({
   certificates:{
     type: [String]
   },
+  enableBtn:{
+    type:Boolean,
+    default:false
+  },
   levelOrders: [{
         level: String,
         program: String,
