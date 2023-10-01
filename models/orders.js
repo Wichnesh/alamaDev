@@ -23,6 +23,10 @@ const ordersSchema = new mongoose.Schema({
   program:{
     type: String
   },
+  enableBtn:{
+    type:Boolean,
+    default:false
+  },
   createdAt: {
     type: Date,
     default: new Date().toLocaleDateString("en-US"),
