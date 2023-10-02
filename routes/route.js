@@ -564,6 +564,7 @@ route.post("/order", async (req, res) => {
       level: newOrder.futureLevel,
       program: newOrder.program,
       enableBtn: newOrder.enableBtn,
+      transferBool: newOrder.transferBool,
       $push: { levelOrders: newLevelUpdate, certificates: reqCertificate },
     });
     //res.send(JSON.stringify({ status: true, message: "Student updated!" }));
