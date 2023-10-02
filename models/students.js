@@ -66,6 +66,10 @@ const studentSchema = new mongoose.Schema({
     type:Boolean,
     default:false
   },
+  transferBool:{
+    type:Boolean,
+    default:false
+  },
   levelOrders: [{
         level: String,
         program: String,
