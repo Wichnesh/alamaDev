@@ -37,6 +37,9 @@ const studentSchema = new mongoose.Schema({
   franchise: {
     type: String
   },
+  franchiseState: {
+    type: String
+  },
   level: {
     type: String
   },
