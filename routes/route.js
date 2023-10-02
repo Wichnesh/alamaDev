@@ -47,7 +47,7 @@ route.post("/login", async (req, res, next) => {
       if (userCheck.approve == true && userCheck.password == password) {
         jwt.sign({ user }, "secretkey", (err, token) => {
           res.send(
-            JSON.stringify({ token, status: true, isAdmin: userCheck.isAdmin })
+            JSON.stringify({ token, status: true, isAdmin: userCheck.isAdmin, franchiseState: userCheck.state })
           );
         });
       } else {
@@ -158,7 +158,6 @@ route.post("/studentcartreg", async (req, res) => {
       date: new Date().toLocaleDateString("en-US"),
     },
   ];
-  let currentFranchise =  await Franchiselist.findOne({username: req.body.franchise});
   let newStudent = StudentCartlist({
     studentID: req.body.studentID,
     enrollDate: req.body.enrollDate,
@@ -171,7 +170,6 @@ route.post("/studentcartreg", async (req, res) => {
     fatherName: req.body.fatherName,
     motherName: req.body.motherName,
     franchise: req.body.franchise,
-    franchiseState:currentFranchise.state,
     level: req.body.level,
     items: req.body.items,
     tShirt: req.body.tShirt,
