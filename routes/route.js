@@ -523,6 +523,7 @@ route.post("/order", async (req, res) => {
     items: req.body.items,
     franchise: req.body.franchise,
     enableBtn: req.body.enableBtn,
+    transferBool: req.body.transferBool,
     program: req.body.program,
   });
   newOrder
