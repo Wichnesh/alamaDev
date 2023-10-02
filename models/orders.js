@@ -27,6 +27,10 @@ const ordersSchema = new mongoose.Schema({
     type:Boolean,
     default:false
   },
+  transferBool:{
+    type:Boolean,
+    default:false
+  },
   createdAt: {
     type: Date,
     default: new Date().toLocaleDateString("en-US"),
