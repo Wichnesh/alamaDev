@@ -158,6 +158,7 @@ route.post("/studentcartreg", async (req, res) => {
       date: new Date().toLocaleDateString("en-US"),
     },
   ];
+  let currentFranchise =  await Franchiselist.findOne({username: req.body.franchise});
   let newStudent = StudentCartlist({
     studentID: req.body.studentID,
     enrollDate: req.body.enrollDate,
@@ -170,6 +171,7 @@ route.post("/studentcartreg", async (req, res) => {
     fatherName: req.body.fatherName,
     motherName: req.body.motherName,
     franchise: req.body.franchise,
+    franchiseState:currentFranchise.state,
     level: req.body.level,
     items: req.body.items,
     tShirt: req.body.tShirt,
