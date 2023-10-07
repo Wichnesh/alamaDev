@@ -746,6 +746,7 @@ route.post("/data", async (req, res) => {
           studentID: 1,
           futureLevel: 1,
           items: 1,
+          currentLevel: 1,
         },
       },
     },
@@ -769,8 +770,8 @@ route.post("/data", async (req, res) => {
         studentName: stuData[0].studentName,
         studentID: elem.studentID,
         state: stuData[0].state,
-        currentLevel: stuData[0].currentLevel,
-        futureLevel: stuData[0].futureLevel,
+        currentLevel: elem.currentLevel,
+        futureLevel: elem.futureLevel,
       };
       oneOrderOut.ordered.push(newOrd);
     });
@@ -817,7 +818,7 @@ route.post("/data", async (req, res) => {
 async function getstudentInfo() {
   let studentData = await Studentlist.find(
     {},
-    { studentName: 1, state: 1, studentID: 1, currentLevel: 1, futureLevel: 1 }
+    { studentName: 1, state: 1, studentID: 1 }
   );
   return studentData;
 }
