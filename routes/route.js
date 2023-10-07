@@ -700,6 +700,9 @@ route.post("/data", async (req, res) => {
       $project: {
         stock: {
           items: 1,
+          studentName: 1,
+          state: 1,
+          level: 1,
         },
       },
     },
@@ -709,11 +712,18 @@ route.post("/data", async (req, res) => {
     let oneOut = {
       franchiseName: data[i]["_id"],
       count: {},
+      enrolledStudents: [],
     };
 
     let onlyItems = [];
     data[i].stock.forEach(function (elem) {
       onlyItems.push(elem.items);
+      let enrollStu = {
+        studentName: elem.studentName,
+        state: elem.state,
+        level: elem.level,
+      };
+      oneOut.enrolledStudents.push(enrollStu);
     });
     onlyItems = onlyItems.flat();
     for (const num of onlyItems) {
@@ -759,6 +769,8 @@ route.post("/data", async (req, res) => {
         studentName: stuData[0].studentName,
         studentID: elem.studentID,
         state: stuData[0].state,
+        currentLevel: stuData[0].currentLevel,
+        futureLevel: stuData[0].futureLevel,
       };
       oneOrderOut.ordered.push(newOrd);
     });
@@ -775,17 +787,37 @@ route.post("/data", async (req, res) => {
     map.set(item._id, { ...map.get(item._idd), ...item })
   );
   const mergedArr = Array.from(map.values());
-  console.log("out=> ", out);
-  console.log("orderOut=> ", orderOut);
-  // console.log("orderOut", mergedArr);
-  res.send(mergedArr);
+  for (i = 0; i < mergedArr.length; i++) {
+    var totalItems = {};
+    for (var key in mergedArr[i].count) {
+      totalItems[key] = mergedArr[i].count[key];
+    }
+    for (var key in mergedArr[i].orderCounts) {
+      if (totalItems[key]) {
+        totalItems[key] =
+          mergedArr[i].orderCounts[key] + mergedArr[i].count[key];
+      } else {
+        totalItems[key] = mergedArr[i].orderCounts[key];
+      }
+    }
+    mergedArr[i]["totalItems"] = totalItems;
+    delete mergedArr[i]["count"];
+    delete mergedArr[i]["orderCounts"];
+  }
+
+  if (mergedArr) {
+    res.status(200).json({
+      status: true,
+      data: mergedArr,
+    });
+  }
 });
 
 // HELPER FUNCTIONS
 async function getstudentInfo() {
   let studentData = await Studentlist.find(
     {},
-    { studentName: 1, state: 1, studentID: 1 }
+    { studentName: 1, state: 1, studentID: 1, currentLevel: 1, futureLevel: 1 }
   );
   return studentData;
 }
