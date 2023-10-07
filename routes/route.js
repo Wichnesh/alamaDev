@@ -703,6 +703,7 @@ route.post("/data", async (req, res) => {
           studentName: 1,
           state: 1,
           level: 1,
+          district: 1,
         },
       },
     },
@@ -722,6 +723,7 @@ route.post("/data", async (req, res) => {
         studentName: elem.studentName,
         state: elem.state,
         level: elem.level,
+        district: elem.district,
       };
       oneOut.enrolledStudents.push(enrollStu);
     });
@@ -772,6 +774,7 @@ route.post("/data", async (req, res) => {
         state: stuData[0].state,
         currentLevel: elem.currentLevel,
         futureLevel: elem.futureLevel,
+        district: stuData[0].district,
       };
       oneOrderOut.ordered.push(newOrd);
     });
@@ -818,7 +821,7 @@ route.post("/data", async (req, res) => {
 async function getstudentInfo() {
   let studentData = await Studentlist.find(
     {},
-    { studentName: 1, state: 1, studentID: 1 }
+    { studentName: 1, state: 1, studentID: 1, district: 1 }
   );
   return studentData;
 }
