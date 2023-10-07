@@ -686,7 +686,7 @@ route.post("/getitemtransaction", async (req, res) => {
 });
 route.post("/data", async (req, res) => {
   var counts = {};
-  const Ordercounts = {};
+  var Ordercounts = {};
   let date = req.body.date;
   // let franchiseName = req.body.franchise;
   const data = await Studentlist.aggregate([
@@ -784,6 +784,7 @@ route.post("/data", async (req, res) => {
       Ordercounts[num] = Ordercounts[num] ? Ordercounts[num] + 1 : 1;
     }
     oneOrderOut.orderCounts = Ordercounts;
+    Ordercounts = {};
     orderOut.push(oneOrderOut);
   }
   const map = new Map();
