@@ -685,7 +685,7 @@ route.post("/getitemtransaction", async (req, res) => {
   }
 });
 route.post("/data", async (req, res) => {
-  const counts = {};
+  var counts = {};
   const Ordercounts = {};
   let date = req.body.date;
   // let franchiseName = req.body.franchise;
@@ -732,6 +732,7 @@ route.post("/data", async (req, res) => {
       counts[num] = counts[num] ? counts[num] + 1 : 1;
     }
     oneOut.count = counts;
+    counts = {};
     out.push(oneOut);
   }
   console.log(out);
@@ -791,6 +792,7 @@ route.post("/data", async (req, res) => {
     map.set(item.franchiseName, { ...map.get(item.franchiseName), ...item })
   );
   const mergedArr = Array.from(map.values());
+  let kirr = mergedArr;
   for (i = 0; i < mergedArr.length; i++) {
     var totalItems = {};
     for (var key in mergedArr[i].count) {
