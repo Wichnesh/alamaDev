@@ -786,9 +786,9 @@ route.post("/data", async (req, res) => {
     orderOut.push(oneOrderOut);
   }
   const map = new Map();
-  out.forEach((item) => map.set(item._id, item));
+  out.forEach((item) => map.set(item.franchiseName, item));
   orderOut.forEach((item) =>
-    map.set(item._id, { ...map.get(item._idd), ...item })
+    map.set(item.franchiseName, { ...map.get(item.franchiseName), ...item })
   );
   const mergedArr = Array.from(map.values());
   for (i = 0; i < mergedArr.length; i++) {
