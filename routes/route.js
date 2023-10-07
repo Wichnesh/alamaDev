@@ -47,7 +47,12 @@ route.post("/login", async (req, res, next) => {
       if (userCheck.approve == true && userCheck.password == password) {
         jwt.sign({ user }, "secretkey", (err, token) => {
           res.send(
-            JSON.stringify({ token, status: true, isAdmin: userCheck.isAdmin, franchiseState: userCheck.state })
+            JSON.stringify({
+              token,
+              status: true,
+              isAdmin: userCheck.isAdmin,
+              franchiseState: userCheck.state,
+            })
           );
         });
       } else {
@@ -79,7 +84,7 @@ route.post("/generate-studentid", async (req, res, next) => {
 });
 // FRANCHISE REGISTRATION
 route.post("/franchise-reg", async (req, res, next) => {
-  let trimuname = req.body.username
+  let trimuname = req.body.username;
   let newFranchise = Franchiselist({
     franchiseID: req.body.franchiseID,
     name: req.body.name,
@@ -679,7 +684,111 @@ route.post("/getitemtransaction", async (req, res) => {
     });
   }
 });
+route.post("/data", async (req, res) => {
+  const counts = {};
+  const Ordercounts = {};
+  let date = req.body.date;
+  // let franchiseName = req.body.franchise;
+  const data = await Studentlist.aggregate([
+    {
+      $match: { enrollDate: date },
+    },
+    {
+      $group: { _id: "$franchise", stock: { $push: "$$ROOT" } },
+    },
+    {
+      $project: {
+        stock: {
+          items: 1,
+        },
+      },
+    },
+  ]);
+  let out = [];
+  for (var i = 0; i < data.length; i++) {
+    let oneOut = {
+      franchiseName: data[i]["_id"],
+      count: {},
+    };
+
+    let onlyItems = [];
+    data[i].stock.forEach(function (elem) {
+      onlyItems.push(elem.items);
+    });
+    onlyItems = onlyItems.flat();
+    for (const num of onlyItems) {
+      counts[num] = counts[num] ? counts[num] + 1 : 1;
+    }
+    oneOut.count = counts;
+    out.push(oneOut);
+  }
+  console.log(out);
+  let orderData = await Orderslist.aggregate([
+    {
+      $match: { createdAt: new Date(date).toLocaleDateString("en-US") },
+    },
+    {
+      $group: { _id: "$franchise", orders: { $push: "$$ROOT" } },
+    },
+    {
+      $project: {
+        orders: {
+          studentID: 1,
+          futureLevel: 1,
+          items: 1,
+        },
+      },
+    },
+  ]);
+  console.log("orderDATA - ", orderData);
+  let studentNameData = await getstudentInfo();
+  let orderOut = [];
+  for (var i = 0; i < orderData.length; i++) {
+    let oneOrderOut = {
+      franchiseName: orderData[i]._id,
+      ordered: [],
+      orderCounts: {},
+    };
+    let onlyItems = [];
+    orderData[i].orders.forEach(function (elem) {
+      onlyItems.push(elem.items);
+      let stuData = studentNameData.filter(function (item) {
+        return item.studentID === elem.studentID;
+      });
+      let newOrd = {
+        studentName: stuData[0].studentName,
+        studentID: elem.studentID,
+        state: stuData[0].state,
+      };
+      oneOrderOut.ordered.push(newOrd);
+    });
+    onlyItems = onlyItems.flat();
+    for (const num of onlyItems) {
+      Ordercounts[num] = Ordercounts[num] ? Ordercounts[num] + 1 : 1;
+    }
+    oneOrderOut.orderCounts = Ordercounts;
+    orderOut.push(oneOrderOut);
+  }
+  const map = new Map();
+  out.forEach((item) => map.set(item._id, item));
+  orderOut.forEach((item) =>
+    map.set(item._id, { ...map.get(item._idd), ...item })
+  );
+  const mergedArr = Array.from(map.values());
+  console.log("out=> ", out);
+  console.log("orderOut=> ", orderOut);
+  // console.log("orderOut", mergedArr);
+  res.send(mergedArr);
+});
+
 // HELPER FUNCTIONS
+async function getstudentInfo() {
+  let studentData = await Studentlist.find(
+    {},
+    { studentName: 1, state: 1, studentID: 1 }
+  );
+  return studentData;
+}
 async function generateID() {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const randomLetter1 = alphabet[Math.floor(Math.random() * alphabet.length)];
