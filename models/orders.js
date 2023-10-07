@@ -32,7 +32,7 @@ const ordersSchema = new mongoose.Schema({
     default:false
   },
   createdAt: {
-    type: Date,
+    type: String,
     default: new Date().toLocaleDateString("en-US"),
   },
 });
