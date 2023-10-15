@@ -165,7 +165,7 @@ route.post("/studentcartreg", async (req, res) => {
   ];
   let newStudent = StudentCartlist({
     studentID: req.body.studentID,
-    enrollDate: req.body.enrollDate,
+    enrollDate: new Date(req.body.enrollDate).toLocaleDateString("en-US"),
     studentName: req.body.studentName,
     address: req.body.address,
     state: req.body.state,
@@ -209,7 +209,7 @@ route.post("/student-reg", async (req, res) => {
   ];
   let newStudent = Studentlist({
     studentID: req.body.studentID,
-    enrollDate: req.body.enrollDate,
+    enrollDate: new Date(req.body.enrollDate).toLocaleDateString("en-US"),
     studentName: req.body.studentName,
     address: req.body.address,
     state: req.body.state,
@@ -300,7 +300,9 @@ route.post("/multiplestudents", async (req, res) => {
     ];
     let newStudent = Studentlist({
       studentID: req.body.data[i].studentID,
-      enrollDate: req.body.data[i].enrollDate,
+      enrollDate: new Date(req.body.data[i].enrollDate).toLocaleDateString(
+        "en-US"
+      ),
       studentName: req.body.data[i].studentName,
       address: req.body.data[i].address,
       state: req.body.data[i].state,
@@ -685,9 +687,182 @@ route.post("/getitemtransaction", async (req, res) => {
   }
 });
 route.post("/data", async (req, res) => {
+  let startDate = req.body.startDate;
+  let endDate = req.body.endDate;
   var counts = {};
   var Ordercounts = {};
   let date = req.body.date;
+
+  let endDt = new Date(endDate).toLocaleDateString("en-US");
+  // let franchiseName = req.body.franchise;
+  // const dataaa = await Studentlist.aggregate({
+  //   $match: {
+  //     enrollDate: new Date(new Date(startDate).setHours(00, 00, 00)),
+  //   },
+  // });
+  // { $match: { $and: [ { enrollDate: { $gte: new Date(startDate).toLocaleDateString("en-US") } }, { enrollDate: { $lte: new Date(endDate).toLocaleDateString("en-US") } } ] } },
+  const data = await Studentlist.aggregate([
+    {
+      $match: {
+        $and: [
+          {
+            enrollDate: {
+              $gte: new Date(startDate).toLocaleDateString("en-US"),
+            },
+          },
+          // {
+          //   enrollDate: { $lte: new Date(endDate).toLocaleDateString("en-US") },
+          // },
+        ],
+      },
+    },
+    {
+      $group: { _id: "$franchise", stock: { $push: "$$ROOT" } },
+    },
+    {
+      $project: {
+        stock: {
+          items: 1,
+          studentName: 1,
+          state: 1,
+          level: 1,
+          district: 1,
+          enrollDate: 1,
+        },
+      },
+    },
+  ]);
+  console.log(data);
+  let out = [];
+  for (var i = 0; i < data.length; i++) {
+    let oneOut = {
+      franchiseName: data[i]["_id"],
+      count: {},
+      enrolledStudents: [],
+    };
+
+    let onlyItems = [];
+    data[i].stock.forEach(function (elem) {
+      let currentDt = new Date(elem.enrollDate).toLocaleDateString("en-US");
+      if (new Date(currentDt) > new Date(endDt)) {
+        return;
+      }
+      onlyItems.push(elem.items);
+      let enrollStu = {
+        studentName: elem.studentName,
+        state: elem.state,
+        level: elem.level,
+        district: elem.district,
+        enrollDate: elem.enrollDate,
+      };
+      oneOut.enrolledStudents.push(enrollStu);
+    });
+    onlyItems = onlyItems.flat();
+    for (const num of onlyItems) {
+      counts[num] = counts[num] ? counts[num] + 1 : 1;
+    }
+    oneOut.count = counts;
+    counts = {};
+    out.push(oneOut);
+  }
+  console.log(out);
+  let orderData = await Orderslist.aggregate([
+    {
+      $match: {
+        createdAt: {
+          $gte: new Date(startDate).toLocaleDateString("en-US"),
+        },
+      },
+    },
+    {
+      $group: { _id: "$franchise", orders: { $push: "$$ROOT" } },
+    },
+    {
+      $project: {
+        orders: {
+          studentID: 1,
+          futureLevel: 1,
+          items: 1,
+          currentLevel: 1,
+          createdAt: 1,
+        },
+      },
+    },
+  ]);
+  console.log("orderDATA - ", orderData);
+  let studentNameData = await getstudentInfo();
+  let orderOut = [];
+  for (var i = 0; i < orderData.length; i++) {
+    let oneOrderOut = {
+      franchiseName: orderData[i]._id,
+      ordered: [],
+      orderCounts: {},
+    };
+    let onlyItems = [];
+    orderData[i].orders.forEach(function (elem) {
+      let currentDt = new Date(elem.createdAt).toLocaleDateString("en-US");
+      if (new Date(currentDt) > new Date(endDt)) {
+        return;
+      }
+      onlyItems.push(elem.items);
+      let stuData = studentNameData.filter(function (item) {
+        return item.studentID === elem.studentID;
+      });
+      let newOrd = {
+        studentName: stuData[0].studentName,
+        studentID: elem.studentID,
+        state: stuData[0].state,
+        currentLevel: elem.currentLevel,
+        futureLevel: elem.futureLevel,
+        district: stuData[0].district,
+        createdAt: elem.createdAt,
+      };
+      oneOrderOut.ordered.push(newOrd);
+    });
+    onlyItems = onlyItems.flat();
+    for (const num of onlyItems) {
+      Ordercounts[num] = Ordercounts[num] ? Ordercounts[num] + 1 : 1;
+    }
+    oneOrderOut.orderCounts = Ordercounts;
+    Ordercounts = {};
+    orderOut.push(oneOrderOut);
+  }
+  const map = new Map();
+  out.forEach((item) => map.set(item.franchiseName, item));
+  orderOut.forEach((item) =>
+    map.set(item.franchiseName, { ...map.get(item.franchiseName), ...item })
+  );
+  const mergedArr = Array.from(map.values());
+  let kirr = mergedArr;
+  for (i = 0; i < mergedArr.length; i++) {
+    var totalItems = {};
+    for (var key in mergedArr[i].count) {
+      totalItems[key] = mergedArr[i].count[key];
+    }
+    for (var key in mergedArr[i].orderCounts) {
+      if (totalItems[key]) {
+        totalItems[key] =
+          mergedArr[i].orderCounts[key] + mergedArr[i].count[key];
+      } else {
+        totalItems[key] = mergedArr[i].orderCounts[key];
+      }
+    }
+    mergedArr[i]["totalItems"] = totalItems;
+    delete mergedArr[i]["count"];
+    delete mergedArr[i]["orderCounts"];
+  }
+  if (mergedArr) {
+    res.status(200).json({
+      status: true,
+      data: mergedArr,
+    });
+  }
+});
+route.post("/dataperiod", async (req, res) => {
+  var counts = {};
+  var Ordercounts = {};
+  let startDate = req.body.startDate;
+  let endDate = req.body.endDate;
   // let franchiseName = req.body.franchise;
   const data = await Studentlist.aggregate([
     {
