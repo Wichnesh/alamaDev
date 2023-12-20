@@ -65,6 +65,8 @@ const studentCartSchema = new mongoose.Schema({
       level: String,
       program: String,
       date: Date,
+      cost: String,
+      paymentID: String
     },
   ],
 });
