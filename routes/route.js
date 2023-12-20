@@ -198,6 +198,22 @@ route.post("/studentcartreg", async (req, res) => {
       });
     });
 });
+route.post("/studentcart-delete",async(req,res)=>{
+  try{
+    await StudentCartlist.findOneAndRemove({
+      studentID: req.body.studentID,
+    });
+    res.status(200).json({
+      status: true,
+      message: `${req.body.data.length} students added!`,
+    });
+  }catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err,
+    });
+  }
+})
 //STUDENT REGISTRATION
 route.post("/student-reg", async (req, res) => {
   let newLevelUpdate = [
@@ -688,20 +704,17 @@ route.post("/getitemtransaction", async (req, res) => {
   }
 });
 route.post("/data", async (req, res) => {
-  let startDate = req.body.startDate;
-  let endDate = req.body.endDate;
+  let startDate1 = req.body.startDate;
+  let endDate1 = req.body.endDate;
+  let ed = endDate1.split("-");
+  let sd = startDate1.split("-");
+  let startDate = sd[1]+"/"+sd[0]+"/"+sd[2];
+  let endDate = ed[1]+"/"+ed[0]+"/"+ed[2];
   var counts = {};
   var Ordercounts = {};
   let date = req.body.date;
 
   let endDt = new Date(endDate).toLocaleDateString("en-US");
-  // let franchiseName = req.body.franchise;
-  // const dataaa = await Studentlist.aggregate({
-  //   $match: {
-  //     enrollDate: new Date(new Date(startDate).setHours(00, 00, 00)),
-  //   },
-  // });
-  // { $match: { $and: [ { enrollDate: { $gte: new Date(startDate).toLocaleDateString("en-US") } }, { enrollDate: { $lte: new Date(endDate).toLocaleDateString("en-US") } } ] } },
   const data = await Studentlist.aggregate([
     {
       $match: {
