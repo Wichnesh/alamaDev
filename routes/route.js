@@ -531,6 +531,7 @@ route.post("/order", async (req, res) => {
     franchise: req.body.franchise,
     enableBtn: req.body.enableBtn,
     transferBool: req.body.transferBool,
+    createdAt: new Date().toLocaleDateString("en-US"),
     program: req.body.program,
   });
   newOrder
