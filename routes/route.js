@@ -161,6 +161,8 @@ route.post("/studentcartreg", async (req, res) => {
       level: req.body.level,
       program: req.body.program,
       date: new Date().toLocaleDateString("en-US"),
+      cost: req.body.cost,
+      paymentID: req.body.paymentID
     },
   ];
   let newStudent = StudentCartlist({
@@ -221,6 +223,8 @@ route.post("/student-reg", async (req, res) => {
       level: req.body.level,
       program: req.body.program,
       date: new Date().toLocaleDateString("en-US"),
+      cost: req.body.cost,
+      paymentID: req.body.paymentID
     },
   ];
   let newStudent = Studentlist({
@@ -312,6 +316,8 @@ route.post("/multiplestudents", async (req, res) => {
         level: req.body.data[i].level,
         program: req.body.data[i].program,
         date: new Date().toLocaleDateString("en-US"),
+        cost: req.body.cost,
+        paymentID: req.body.paymentID
       },
     ];
     let newStudent = Studentlist({
@@ -536,6 +542,8 @@ route.post("/order", async (req, res) => {
       level: req.body.futureLevel,
       program: req.body.program,
       date: new Date().toLocaleDateString("en-US"),
+      cost: req.body.cost,
+      paymentID: req.body.paymentID
     },
   ];
   let reqCertificate = req.body.certificate;
