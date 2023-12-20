@@ -73,7 +73,9 @@ const studentSchema = new mongoose.Schema({
   levelOrders: [{
         level: String,
         program: String,
-        date: Date
+        date: Date,
+        cost: String,
+        paymentID: String
     }]
 });
 
