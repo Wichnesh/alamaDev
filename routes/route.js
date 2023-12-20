@@ -205,7 +205,7 @@ route.post("/studentcart-delete",async(req,res)=>{
     });
     res.status(200).json({
       status: true,
-      message: `${req.body.data.length} students added!`,
+      message: `Student deleted in cart`,
     });
   }catch (err) {
     res.status(400).json({
