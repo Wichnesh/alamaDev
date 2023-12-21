@@ -826,7 +826,7 @@ route.post("/data", async (req, res) => {
       let stuData = studentNameData.filter(function (item) {
         return item.studentID === elem.studentID;
       });
-      console.log("StudentData  =  ",stuData,"itemStudentID ",item.studentID,"elemStudentID",elem.studentID);
+      console.log("StudentData  =  ",stuData,"elem ",elem);
       let newOrd;
       if(stuData){
         newOrd = {
