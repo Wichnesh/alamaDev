@@ -722,20 +722,6 @@ route.post("/data", async (req, res) => {
   let startDt = new Date(startDate).toLocaleDateString("en-US");
   const data = await Studentlist.aggregate([
     {
-      $match: {
-        $and: [
-          {
-            enrollDate: {
-              $gte: new Date(startDate).toLocaleDateString("en-US"),
-            },
-          },
-          // {
-          //   enrollDate: { $lte: new Date(endDate).toLocaleDateString("en-US") },
-          // },
-        ],
-      },
-    },
-    {
       $group: { _id: "$franchise", stock: { $push: "$$ROOT" } },
     },
     {
