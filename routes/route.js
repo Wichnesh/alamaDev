@@ -719,6 +719,7 @@ route.post("/data", async (req, res) => {
   let date = req.body.date;
 
   let endDt = new Date(endDate).toLocaleDateString("en-US");
+  let startDt = new Date(startDate).toLocaleDateString("en-US");
   const data = await Studentlist.aggregate([
     {
       $match: {
@@ -763,6 +764,9 @@ route.post("/data", async (req, res) => {
     data[i].stock.forEach(function (elem) {
       let currentDt = new Date(elem.enrollDate).toLocaleDateString("en-US");
       if (new Date(currentDt) > new Date(endDt)) {
+        return;
+      }
+      if(new Date(currentDt) < new Date(startDt)){
         return;
       }
       onlyItems.push(elem.items);
