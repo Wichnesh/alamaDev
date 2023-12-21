@@ -826,7 +826,10 @@ route.post("/data", async (req, res) => {
       let stuData = studentNameData.filter(function (item) {
         return item.studentID === elem.studentID;
       });
-      let newOrd = {
+      console.log("StudentData  =  ",stuData,"itemStudentID ",item.studentID,"elemStudentID",elem.studentID);
+      let newOrd;
+      if(stuData){
+        newOrd = {
         studentName: stuData[0].studentName,
         studentID: elem.studentID,
         state: stuData[0].state,
@@ -834,8 +837,9 @@ route.post("/data", async (req, res) => {
         futureLevel: elem.futureLevel,
         district: stuData[0].district,
         createdAt: elem.createdAt,
-      };
-      oneOrderOut.ordered.push(newOrd);
+        };
+        oneOrderOut.ordered.push(newOrd);
+      }
     });
     onlyItems = onlyItems.flat();
     for (const num of onlyItems) {
