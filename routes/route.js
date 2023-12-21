@@ -316,8 +316,8 @@ route.post("/multiplestudents", async (req, res) => {
         level: req.body.data[i].level,
         program: req.body.data[i].program,
         date: new Date().toLocaleDateString("en-US"),
-        cost: req.body.cost,
-        paymentID: req.body.paymentID
+        cost: req.body.data[i].cost,
+        paymentID: req.body.data[i].paymentID
       },
     ];
     let newStudent = Studentlist({
