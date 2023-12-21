@@ -712,12 +712,8 @@ route.post("/getitemtransaction", async (req, res) => {
   }
 });
 route.post("/data", async (req, res) => {
-  let startDate1 = req.body.startDate;
-  let endDate1 = req.body.endDate;
-  let ed = endDate1.split("-");
-  let sd = startDate1.split("-");
-  let startDate = sd[1]+"/"+sd[0]+"/"+sd[2];
-  let endDate = ed[1]+"/"+ed[0]+"/"+ed[2];
+  let startDate = req.body.startDate;
+  let endDate = req.body.endDate;
   var counts = {};
   var Ordercounts = {};
   let date = req.body.date;
