@@ -1029,14 +1029,8 @@ route.post("/tamilnadureport", async (req, res) => {
       }
     }
     mergedArr[i]["totalItems"] = totalItems;
-    console.log("totalItems - ",(Object.keys(mergedArr[i]["totalItems"]).length));
-    console.log("enrolledStudents- ",mergedArr[i]["enrolledStudents"].length);
-    if((Object.keys(mergedArr[i]["totalItems"]).length === 0) && (mergedArr[i]["enrolledStudents"].length == 0)){
-        delete mergedArr[i];
-    }else{
-      delete mergedArr[i]["count"];
-      delete mergedArr[i]["orderCounts"];
-    }
+    delete mergedArr[i]["count"];
+    delete mergedArr[i]["orderCounts"];
   }
   const filteredmergedArr = mergedArr.filter(object => object !== null);
   if (mergedArr) {
