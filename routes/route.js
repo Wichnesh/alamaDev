@@ -117,7 +117,7 @@ route.post("/getallfranchise", async (req, res) => {
     let basicQuery = { isAdmin: false };
     let paramQuery = req.query;
     let filter = Object.assign(basicQuery, paramQuery);
-    let allFranchise = await Franchiselist.find(filter, { __v: 0 });
+    let allFranchise = await Franchiselist.find(filter, { __v: 0 }).sort({username:1});
     if (allFranchise) {
       res.status(200).json({
         status: true,
