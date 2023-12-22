@@ -869,10 +869,11 @@ route.post("/data", async (req, res) => {
       delete mergedArr[i]["orderCounts"];
     }
   }
+  const filteredmergedArr = mergedArr.filter(object => object !== null);
   if (mergedArr) {
     res.status(200).json({
       status: true,
-      data: mergedArr,
+      data: filteredmergedArr,
     });
   }
 });
