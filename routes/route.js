@@ -860,8 +860,8 @@ route.post("/data", async (req, res) => {
       }
     }
     mergedArr[i]["totalItems"] = totalItems;
-    if((mergedArr[i]["totalItems"].length < 0) && (mergedArr[i]["enrolledStudents"].length < 0)){
-        mergedArr[i].splice(0,1);
+    if((Object.keys(mergedArr[i]["totalItems"]).length === 0) && (mergedArr[i]["enrolledStudents"].length < 0)){
+        mergedArr.splice(i,1);
     }
     delete mergedArr[i]["count"];
     delete mergedArr[i]["orderCounts"];
