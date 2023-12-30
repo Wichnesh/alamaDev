@@ -949,7 +949,6 @@ route.post("/tamilnadureport", async (req, res) => {
         createdAt: {
           $gte: new Date(startDate).toLocaleDateString("en-US"),
         },
-        state: {"Tamil Nadu"},
       },
     },
     {
