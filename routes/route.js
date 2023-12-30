@@ -949,7 +949,6 @@ route.post("/tamilnadureport", async (req, res) => {
         createdAt: {
           $gte: new Date(startDate).toLocaleDateString("en-US"),
         },
-        state:{ $regex: /^Tamil Nadu$/ },
       },
     },
     {
@@ -988,7 +987,7 @@ route.post("/tamilnadureport", async (req, res) => {
       });
       console.log("StudentData  =  ",stuData,"elem ",elem);
       let newOrd;
-      if(stuData){
+      if((stuData) && (stuData[0].state == "Tamil Nadu")){
         newOrd = {
         studentName: stuData[0].studentName,
         studentID: elem.studentID,
