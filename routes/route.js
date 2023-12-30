@@ -948,7 +948,8 @@ route.post("/tamilnadureport", async (req, res) => {
       $match: {
         createdAt: {
           $gte: new Date(startDate).toLocaleDateString("en-US"),
-        },state: "Tamil Nadu",
+        },
+        "state": "Tamil Nadu",
       },
     },
     {
