@@ -716,7 +716,6 @@ route.post("/data", async (req, res) => {
   let endDate = req.body.endDate;
   var counts = {};
   var Ordercounts = {};
-  let date = req.body.date;
 
   let endDt = new Date(endDate).toLocaleDateString("en-US");
   let startDt = new Date(startDate).toLocaleDateString("en-US");
@@ -775,13 +774,13 @@ route.post("/data", async (req, res) => {
   }
   console.log(out);
   let orderData = await Orderslist.aggregate([
-    {
-      $match: {
-        createdAt: {
-          $gte: new Date(startDate).toLocaleDateString("en-US"),
-        },
-      },
-    },
+    // {
+    //   $match: {
+    //     createdAt: {
+    //       $gte: new Date(startDate).toLocaleDateString("en-US"),
+    //     },
+    //   },
+    // },
     {
       $group: { _id: "$franchise", orders: { $push: "$$ROOT" } },
     },
@@ -810,6 +809,9 @@ route.post("/data", async (req, res) => {
     orderData[i].orders.forEach(function (elem) {
       let currentDt = new Date(elem.createdAt).toLocaleDateString("en-US");
       if (new Date(currentDt) > new Date(endDt)) {
+        return;
+      }
+      if (new Date(currentDt) < new Date(startDt)) {
         return;
       }
       onlyItems.push(elem.items);
@@ -944,13 +946,13 @@ route.post("/tamilnadureport", async (req, res) => {
   }
   console.log(out);
   let orderData = await Orderslist.aggregate([
-    {
-      $match: {
-        createdAt: {
-          $gte: new Date(startDate).toLocaleDateString("en-US"),
-        },
-      },
-    },
+    // {
+    //   $match: {
+    //     createdAt: {
+    //       $gte: new Date(startDate).toLocaleDateString("en-US"),
+    //     },
+    //   },
+    // },
     {
       $group: { _id: "$franchise", orders: { $push: "$$ROOT" } },
     },
@@ -981,7 +983,9 @@ route.post("/tamilnadureport", async (req, res) => {
       if (new Date(currentDt) > new Date(endDt)) {
         return;
       }
-      onlyItems.push(elem.items);
+      if (new Date(currentDt) < new Date(startDt)) {
+        return;
+      }
       let stuData = studentNameData.filter(function (item) {
         return item.studentID === elem.studentID;
       });
@@ -998,6 +1002,7 @@ route.post("/tamilnadureport", async (req, res) => {
         createdAt: elem.createdAt,
         };
         oneOrderOut.ordered.push(newOrd);
+        onlyItems.push(elem.items);
       }
     });
     onlyItems = onlyItems.flat();
