@@ -7,7 +7,7 @@ require("dotenv").config();
 
 var app = express();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 const dbUrl = process.env.MONGOLOCAL;
 const ConnectionParams = {
