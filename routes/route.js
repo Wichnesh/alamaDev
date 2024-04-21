@@ -1209,7 +1209,7 @@ route.post("/getStudentsCount",async (req,res) => {
     const aggregationPipeline = [
       {
           $group: {
-              _id: '$franchise',
+              f_email: '$franchise',
               numberOfStudents: { $sum: 1 }
           }
       }
@@ -1221,9 +1221,8 @@ route.post("/getStudentsCount",async (req,res) => {
 
       result.forEach(item1 => {
         allFranchise.forEach(item2 => {
-            if (item1._id === item2.email) {
-              item2.studentsCount = item1.numberOfStudents;
-              combined_json.push(item2);
+            if (item1.f_email === item2.email) {
+              combined_json.push({ ...item1, ...item2 });
             }
           });
       });
