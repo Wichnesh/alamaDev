@@ -1222,7 +1222,8 @@ route.post("/getStudentsCount",async (req,res) => {
       result.forEach(item1 => {
         allFranchise.forEach(item2 => {
             if (item1._id === item2.email) {
-              combined_json.push({ ...item1, ...item2 });
+              item2.studentsCount = item1.numberOfStudents;
+              combined_json.push(item2);
             }
           });
       });
