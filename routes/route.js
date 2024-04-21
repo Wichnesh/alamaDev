@@ -1220,7 +1220,7 @@ route.post("/getStudentsCount",async (req,res) => {
         if (result) {
           res.status(200).json({
             status: true,
-            data1: allStudent,
+            data1: result,
             data2: allFranchise
           });
         }else{
