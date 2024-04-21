@@ -1221,7 +1221,9 @@ route.post("/getStudentsCount",async (req,res) => {
         const matchingItem1 = result.find(item1 => item1._id === item2.email);
         if (matchingItem1) {
             return {
-                ...item2,
+                franchieName: item2.name,
+                franchieEmail: item2.email,
+                franchieState: item2.state,
                 numberOfStudents: matchingItem1.numberOfStudents
             };
         }
