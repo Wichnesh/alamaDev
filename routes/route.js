@@ -1217,11 +1217,21 @@ route.post("/getStudentsCount",async (req,res) => {
 
       // Execute the aggregation pipeline
       const result = await Studentlist.aggregate(aggregationPipeline);
+      let combined_json = []
+
+      result.forEach(item1 => {
+        allFranchise.forEach(item2 => {
+            if (item1._id === item2.email) {
+                combinedJson.push({ ...item1, ...item2 });
+            }
+          });
+      });
+
+      print(combined_json)
         if (result) {
           res.status(200).json({
             status: true,
-            data1: result,
-            data2: allFranchise
+            data1: combined_json
           });
         }else{
           res.status(200).json({
