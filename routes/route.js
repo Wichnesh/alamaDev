@@ -1209,7 +1209,7 @@ route.post("/getStudentsCount",async (req,res) => {
     const aggregationPipeline = [
       {
           $group: {
-              f_email: '$franchise',
+              _id: '$franchise',
               numberOfStudents: { $sum: 1 }
           }
       }
@@ -1217,19 +1217,20 @@ route.post("/getStudentsCount",async (req,res) => {
 
       // Execute the aggregation pipeline
       const result = await Studentlist.aggregate(aggregationPipeline);
-      let combined_json = []
-
-      result.forEach(item1 => {
-        allFranchise.forEach(item2 => {
-            if (item1.f_email === item2.email) {
-              combined_json.push({ ...item1, ...item2 });
-            }
-          });
-      });
+      const combinedJson = allFranchise.map(item2 => {
+        const matchingItem1 = result.find(item1 => item1._id === item2.email);
+        if (matchingItem1) {
+            return {
+                ...item2,
+                numberOfStudents: matchingItem1.numberOfStudents
+            };
+        }
+        return item2;
+    });
         if (result) {
           res.status(200).json({
             status: true,
-            data1: combined_json
+            data1: combinedJson
           });
         }else{
           res.status(200).json({
