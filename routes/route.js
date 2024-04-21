@@ -1221,9 +1221,18 @@ route.post("/getStudentsCount",async (req,res) => {
         const matchingItem1 = result.find(item1 => item1._id === item2.email);
         if (matchingItem1) {
             return {
-                franchieName: item2.name,
-                franchieEmail: item2.email,
-                franchieState: item2.state,
+                _id:item2._id,
+                franchiseID:item2.franchiseID,
+                name:item2.name,
+                email:item2.email,
+                contactNumber:item2.contactNumber,
+                state:item2.state,
+                district:item2.district,
+                username:item2.username,
+                password:item2.password,
+                registerDate:item2.registerDate,
+                isAdmin:item2.isAdmin,
+                approve:item2.approve,
                 numberOfStudents: matchingItem1.numberOfStudents
             };
         }
