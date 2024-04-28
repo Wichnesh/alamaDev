@@ -139,6 +139,7 @@ route.post("/getallfranchise", async (req, res) => {
     let basicQuery = { isAdmin: false };
     let paramQuery = req.query;
     let filter = Object.assign(basicQuery, paramQuery);
+   
     let allFranchise = await Franchiselist.find(filter, { __v: 0 }).sort({
       username: 1,
     });
@@ -156,6 +157,7 @@ route.post("/getallfranchise", async (req, res) => {
     });
   }
 });
+
 //APPROVE USER
 route.post("/approveUser", verifyToken, (req, res, next) => {
   let { franchiseID } = req.body;
@@ -164,7 +166,7 @@ route.post("/approveUser", verifyToken, (req, res, next) => {
     const update = {
       approve: true,
     };
-    jwt.verify(req.token, "secretkey", async (err, authData) => {
+    jwt.verify(req.token, "your_secret_key", async (err, authData) => {
       if (err) res.sendStatus(403);
       else {
         let updateData = await Franchiselist.findOneAndUpdate(filter, update);
@@ -186,7 +188,7 @@ route.post("/rejectUser", verifyToken, (req, res, next) => {
     const update = {
       approve: false,
     };
-    jwt.verify(req.token, "secretkey", async (err, authData) => {
+    jwt.verify(req.token, "your_secret_key", async (err, authData) => {
       if (err) res.sendStatus(403);
       else {
         let updateData = await Franchiselist.findOneAndUpdate(filter, update);
@@ -945,16 +947,17 @@ route.post("/data", async (req, res) => {
   }
   console.log(out);
   let orderData = await Orderslist.aggregate([
-    {
-      $match: { status: "Success" },
-    },
     // {
-    //   $match: {
-    //     createdAt: {
-    //       $gte: new Date(startDate).toLocaleDateString("en-US"),
-    //     },
-    //   },
+    //   $match: { status: "Success" },
     // },
+    {
+      $match: {
+        createdAt: {
+          $gte: new Date(startDate).toLocaleDateString("en-US"),
+        },
+        status: "Success"
+      },
+    },
     {
       $group: { _id: "$franchise", orders: { $push: "$$ROOT" } },
     },
@@ -981,7 +984,7 @@ route.post("/data", async (req, res) => {
     };
     let onlyItems = [];
     orderData[i].orders.forEach(function (elem) {
-      let currentDt = new Date(elem.createdAt).toLocaleDateString("en-US");
+      let currentDt = new Date(elem.createdAt).toLocaleString("en-US");
       if (new Date(currentDt) > new Date(endDt)) {
         return;
       }
