@@ -1037,7 +1037,6 @@ route.post("/data", async (req, res) => {
       "totalItems - ",
       Object.keys(mergedArr[i]["totalItems"]).length
     );
-    console.log("enrolledStudents- ", mergedArr[i]["enrolledStudents"].length);
     if (
       Object.keys(mergedArr[i]["totalItems"]).length === 0 &&
       mergedArr[i]["enrolledStudents"].length == 0
