@@ -7,8 +7,10 @@ var StudentCartlist = require("../models/studentsCart");
 var Itemlist = require("../models/items");
 var Transactionlist = require("../models/transaction");
 var Orderslist = require("../models/orders");
+var razorpayOrders = require("../models/razorpayOrders");
 const mongoose = require("mongoose");
 const studentsCart = require("../models/studentsCart");
+const { createOrder, RPcreateOrder, RPcheckStatus } = require("../utils/razorpayApis");
 
 let totalItems;
 itemsUpdate();
@@ -44,17 +46,24 @@ route.post("/login", async (req, res, next) => {
     let userCheck = await Franchiselist.findOne({ username: userName.trim() });
     console.log(userCheck);
     if (userCheck) {
-      if (userCheck.approve == true && userCheck.password == password) {
-        jwt.sign({ user }, "secretkey", (err, token) => {
-          res.send(
-            JSON.stringify({
-              token,
-              status: true,
-              isAdmin: userCheck.isAdmin,
-              franchiseState: userCheck.state,
-            })
-          );
+      if (userCheck.approve == true && userCheck.password == password) { 
+        const userData = {
+          id: userCheck.franchiseID,
+          approve: userCheck.approve
+          // Add more user data as needed
+        };
+        // Generate JWT token with user data
+        const token = jwt.sign(userData, "your_secret_key", {
+          expiresIn: "2 days",
         });
+        res.send(
+          JSON.stringify({
+            token:token,
+            status: true,
+            isAdmin: userCheck.isAdmin,
+            franchiseState: userCheck.state,
+          })
+        );
       } else {
         res.send(JSON.stringify({ status: false }));
       }
@@ -67,7 +76,7 @@ route.post("/login", async (req, res, next) => {
 });
 route.post("/login-status",async (req,res,next) =>{
   let token = req.body.token;
-  jwt.verify(token, "secretkey", (err, decoded) => {
+  jwt.verify(token, "your_secret_key", (err, decoded) => {
     if (err) {
       res.sendStatus(403); // Forbidden
     } else {
@@ -160,6 +169,28 @@ route.post("/approveUser", verifyToken, (req, res, next) => {
       else {
         let updateData = await Franchiselist.findOneAndUpdate(filter, update);
         res.send(JSON.stringify({ status: true, message: "User approved!" }));
+      }
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err,
+    });
+  }
+});
+// REJECT USER
+route.post("/rejectUser", verifyToken, (req, res, next) => {
+  let { franchiseID } = req.body;
+  try {
+    const filter = { franchiseID: franchiseID };
+    const update = {
+      approve: false,
+    };
+    jwt.verify(req.token, "secretkey", async (err, authData) => {
+      if (err) res.sendStatus(403);
+      else {
+        let updateData = await Franchiselist.findOneAndUpdate(filter, update);
+        res.send(JSON.stringify({ status: true, message: "User rejected!" }));
       }
     });
   } catch (err) {
@@ -319,103 +350,160 @@ route.post("/student-reg", async (req, res) => {
       });
   }, 4000);
 });
+
+// EDIT STUDENT
+route.post("/student-update/:id", async (req, res) => {
+  let studentFind;
+  var removeFields = ["studentID","enrollDate", "franchise", "levelOrders", "cost", "paymentID","program","tShirt","items"]
+  try {
+    const filter = { studentID: req.params.id};
+    let updateData = req.body;
+    removeFields.forEach((field) => {
+      if (updateData[field]) {
+        delete updateData[field];
+      }
+    });
+    let updatedData = await Studentlist.findOneAndUpdate(filter, updateData);
+    res.send({ status: true, message: "Student updated!" });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      status: false,
+      message: err,
+    });
+  }
+});
+
 //MULTIPLE STUDENT REGISTRATION
 route.post("/multiplestudents", async (req, res) => {
   console.log(req.body);
-  for (let i = 0; i < req.body.data.length; i++) {
-    await StudentCartlist.findOneAndRemove({
-      studentID: req.body.data[i].studentID,
-    });
-    let newLevelUpdate = [
-      {
-        level: req.body.data[i].level,
-        program: req.body.data[i].program,
-        date: new Date().toLocaleDateString("en-US"),
-        cost: req.body.data[i].cost[0],
-        paymentID: req.body.data[i].paymentID,
-      },
-    ];
-    let newStudent = Studentlist({
-      studentID: req.body.data[i].studentID,
-      enrollDate: new Date(req.body.data[i].enrollDate).toLocaleDateString(
-        "en-US"
-      ),
-      studentName: req.body.data[i].studentName,
-      address: req.body.data[i].address,
-      state: req.body.data[i].state,
-      district: req.body.data[i].district,
-      mobileNumber: req.body.data[i].mobileNumber,
-      email: req.body.data[i].email,
-      fatherName: req.body.data[i].fatherName,
-      motherName: req.body.data[i].motherName,
-      franchise: req.body.data[i].franchise,
-      level: req.body.data[i].level,
-      items: req.body.data[i].items,
-      tShirt: req.body.data[i].tShirt,
-      program: req.body.data[i].program,
-      cost: req.body.data[i].cost,
-      paymentID: req.body.data[i].paymentID,
-      levelOrders: newLevelUpdate,
-    });
-    console.log("newStudent -> ", newStudent);
-    newStudent
-      .save()
-      .then(() => {
-        console.log("Added - ", i);
-      })
-      .catch((error) => {
-        res.status(400).json({
-          status: false,
-          error: error,
-        });
-      });
-    // UPDATE STOCKS
-    try {
-      let tshirt = "tshirt" + newStudent.tShirt;
-      await Itemlist.updateMany(
-        { name: { $in: newStudent.items } },
-        { $inc: { count: -1 } }
-      );
-      console.log(tshirt);
-      if (newStudent.tShirt != 0) {
-        await Itemlist.updateOne({ name: tshirt }, { $inc: { count: 1 } });
-      }
-      itemsUpdate();
-    } catch (err) {
-      res.status(400).json({
-        status: false,
-        message: err,
-      });
-    }
-    // CREATE TRANSACTION
-    let transactions = [];
+  var razorpayOrderObj = req.body.razorpayOrderObj;
+  var isSuccessful = req.body.isSuccessful;
+  var order_id;
+  try{
+    const razerpayOrder = await RPcreateOrder(razorpayOrderObj)
+    if(razerpayOrder.id){
+      res.status(200).send(razerpayOrder.id)
+      console.log(razerpayOrder)
+      let razorpayOrder = razorpayOrders(razerpayOrder);
+      razorpayOrder.notes = {...razorpayOrder?.notes, ...req.body.data}
+      await razorpayOrder.save()
+      order_id = razorpayOrder.id
 
-    newStudent.items.forEach(async (item) => {
-      let newTransaction = {
-        studentName: newStudent.studentName,
-        studentID: newStudent.studentID,
-        franchiseName: newStudent.franchise,
-        itemName: item,
-        quantity: -1,
-        currentQuantity: totalItems.find((it) => it.name === item).count,
-      };
-      transactions.push(newTransaction);
-    });
-    setTimeout(() => {
-      console.log(transactions);
-      Transactionlist.insertMany(transactions)
-        .then(function () {
-          console.log("Transaction inserted");
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }, 4000);
+    if (!isSuccessful) {
+      let time = 0;
+      while (!isSuccessful || time < 60) {
+        let order = await RPcheckStatus(razerpayOrder.id);
+        console.log("order Found");
+        console.log(order);
+        if (order?.status === "paid") {
+          razorpayOrder.status = "paid";
+          await razorpayOrder.save();
+          isSuccessful = true;
+          break;
+        }
+        console.log("Checking payment status");
+        console.log(order?.status );
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        time++;
+      }
+    }
   }
-  res.status(200).json({
-    status: true,
-    message: `${req.body.data.length} students added!`,
-  });
+  else{
+    res.status(400).send("Error in creating order")
+  }
+
+  }
+  catch(err){
+    console.log(err)
+  }
+  if (isSuccessful) {
+    for (let i = 0; i < req.body.data.length; i++) {
+      await StudentCartlist.findOneAndRemove({
+        studentID: req.body.data[i].studentID,
+      });
+      let newLevelUpdate = [
+        {
+          level: req.body.data[i].level,
+          program: req.body.data[i].program,
+          date: new Date().toLocaleDateString("en-US"),
+          cost: req.body.data[i].cost[0],
+          paymentID: req.body.data[i].paymentID,
+        },
+      ];
+      let newStudent = Studentlist({
+        studentID: req.body.data[i].studentID,
+        enrollDate: new Date(req.body.data[i].enrollDate).toLocaleDateString(
+          "en-US"
+        ),
+        studentName: req.body.data[i].studentName,
+        address: req.body.data[i].address,
+        state: req.body.data[i].state,
+        district: req.body.data[i].district,
+        mobileNumber: req.body.data[i].mobileNumber,
+        email: req.body.data[i].email,
+        fatherName: req.body.data[i].fatherName,
+        motherName: req.body.data[i].motherName,
+        franchise: req.body.data[i].franchise,
+        level: req.body.data[i].level,
+        items: req.body.data[i].items,
+        tShirt: req.body.data[i].tShirt,
+        program: req.body.data[i].program,
+        cost: req.body.data[i].cost,
+        paymentID: order_id,
+        levelOrders: newLevelUpdate,
+      });
+      console.log("newStudent -> ", newStudent);
+      newStudent
+        .save()
+        .then(() => {
+          console.log("Added - ", i);
+        })
+        .catch((error) => {
+         console.log(error);
+        });
+      // UPDATE STOCKS
+      try {
+        let tshirt = "tshirt" + newStudent.tShirt;
+        await Itemlist.updateMany(
+          { name: { $in: newStudent.items } },
+          { $inc: { count: -1 } }
+        );
+        console.log(tshirt);
+        if (newStudent.tShirt != 0) {
+          await Itemlist.updateOne({ name: tshirt }, { $inc: { count: 1 } });
+        }
+        itemsUpdate();
+      } catch (err) {
+        console.log(err);
+      }
+      // CREATE TRANSACTION
+      let transactions = [];
+
+      newStudent.items.forEach(async (item) => {
+        let newTransaction = {
+          studentName: newStudent.studentName,
+          studentID: newStudent.studentID,
+          franchiseName: newStudent.franchise,
+          itemName: item,
+          quantity: -1,
+          currentQuantity: totalItems.find((it) => it.name === item).count,
+        };
+        transactions.push(newTransaction);
+      });
+      setTimeout(() => {
+        console.log(transactions);
+        Transactionlist.insertMany(transactions)
+          .then(function () {
+            console.log("Transaction inserted");
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      }, 4000);
+    }
+    console.log("All students added successfully!");
+}
 });
 
 //GET ALL STUDENTS
@@ -551,7 +639,61 @@ route.post("/editItem", async (req, res, next) => {
   newTransaction.save();
 });
 //CREATE ORDERS
+
+route.post("/create-order", async (req, res) => {
+  try{
+    order = await RPcreateOrder(req.body.razorpayOrderObj)
+    if(order){
+      let razorpayOrder = razorpayOrders(order);
+      await razorpayOrder.save()
+      res.send(order.id)
+    }else{
+      res.send("Error in creating order")
+    }
+  }
+  catch(err){
+    console.log(err)
+  }
+});
+
+
 route.post("/order", async (req, res) => {
+  var isSuccessful = req.body.isSuccessful??false;
+  const razorpayOrderObj = req.body.razorpayOrderObj;
+  console.log(req.body)
+  console.log(razorpayOrderObj)
+  // if isSuccessful is false, then wait for the payment to be successful while checking the paymentID every 5 seconds for 5 minutes
+  try{
+    const razerpayOrder = await RPcreateOrder(razorpayOrderObj)
+    res.send(razerpayOrder.id)
+    console.log(razerpayOrder)
+    let razorpayOrder = razorpayOrders(razerpayOrder);
+    await razorpayOrder.save()
+  
+
+    if (!isSuccessful) {
+      let time = 0;
+      while (!isSuccessful || time < 60) {
+        let order = await RPcheckStatus(razerpayOrder.id);
+        console.log("order Found");
+        console.log(order);
+        if (order?.status === "paid") {
+          razorpayOrder.status = "paid";
+          await razorpayOrder.save();
+          isSuccessful = true;
+          break;
+        }
+        console.log("Checking payment status");
+        console.log(order?.status );
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        time++;
+      }
+    }
+  }
+  catch(err){
+    console.log(err)
+    res.send("Error in creating order")
+  }
   let newLevelUpdate = [
     {
       level: req.body.futureLevel,
@@ -570,16 +712,17 @@ route.post("/order", async (req, res) => {
     franchise: req.body.franchise,
     enableBtn: req.body.enableBtn,
     transferBool: req.body.transferBool,
-    createdAt: new Date().toLocaleDateString("en-US"),
+    status: isSuccessful ? "Success" : "Pending",
+
     program: req.body.program,
   });
   newOrder
     .save()
     .then(() => {
-      res.status(200).json({
-        status: true,
-        message: "Order added successfully!",
-      });
+      // res.status(200).json({
+      //   status: true,
+      //   message: "Order added successfully!",
+      // });
     })
     .catch((error) => {
       res.status(400).json({
@@ -588,10 +731,12 @@ route.post("/order", async (req, res) => {
       });
     });
   try {
+    if (isSuccessful){
     await Itemlist.updateMany(
       { name: { $in: newOrder.items } },
       { $inc: { count: -1 } }
     );
+  }
     itemsUpdate();
   } catch (err) {
     // res.status(400).json({
@@ -601,28 +746,30 @@ route.post("/order", async (req, res) => {
     console.log(err);
   }
   // CHANGE STUDENT LEVEL
-  let studentIDReq = req.body.studentID;
-  try {
-    const filter = { studentID: studentIDReq };
-    let updateData = {
-      level: newOrder.futureLevel,
-    };
-    let updatedData = await Studentlist.findOneAndUpdate(filter, {
-      level: newOrder.futureLevel,
-      program: newOrder.program,
-      enableBtn: newOrder.enableBtn,
-      transferBool: newOrder.transferBool,
-      $push: { levelOrders: newLevelUpdate, certificates: reqCertificate },
-    });
-    //res.send(JSON.stringify({ status: true, message: "Student updated!" }));
-    console.log("Student updated!");
-  } catch (err) {
-    console.log(err);
+  if (isSuccessful) {
+    let studentIDReq = req.body.studentID;
+    try {
+        const filter = { studentID: studentIDReq };
+        let updateData = {
+          level: newOrder.futureLevel,
+        };
+        let updatedData = await Studentlist.findOneAndUpdate(filter, {
+          level: newOrder.futureLevel,
+          program: newOrder.program,
+          enableBtn: newOrder.enableBtn,
+          transferBool: newOrder.transferBool,
+          $push: { levelOrders: newLevelUpdate, certificates: reqCertificate },
+        });
+        //res.send(JSON.stringify({ status: true, message: "Student updated!" }));
+        console.log("Student updated!");
+    } catch (err) {
+      console.log(err);
+    }
   }
 });
 route.post("/getallorders", async (req, res) => {
   try {
-    let allOrders = await Orderslist.find({}, { __v: 0 });
+    let allOrders = await Orderslist.find({status: "Success",}, { __v: 0 });
     if (allOrders) {
       res.status(200).json({
         status: true,
@@ -648,6 +795,7 @@ route.post("/filterorder", async (req, res) => {
       });
     }
     const orders = await Orderslist.find({
+      status: "Success",
       createdAt: {
         $gte: new Date(new Date(startDate).setHours(00, 00, 00)),
         $lt: new Date(new Date(endDate).setHours(23, 59, 59)),
@@ -797,6 +945,9 @@ route.post("/data", async (req, res) => {
   }
   console.log(out);
   let orderData = await Orderslist.aggregate([
+    {
+      $match: { status: "Success" },
+    },
     // {
     //   $match: {
     //     createdAt: {
@@ -910,171 +1061,184 @@ route.post("/data", async (req, res) => {
   }
 });
 route.post("/tamilnadureport", async (req, res) => {
-  let startDate = req.body.startDate;
-  let endDate = req.body.endDate;
-  var counts = {};
-  var Ordercounts = {};
-  let date = req.body.date;
-
-  let endDt = new Date(endDate).toLocaleDateString("en-US");
-  let startDt = new Date(startDate).toLocaleDateString("en-US");
-  const data = await Studentlist.aggregate([
-    {
-      $match: { state: "Tamil Nadu" },
-    },
-    {
-      $group: { _id: "$franchise", stock: { $push: "$$ROOT" } },
-    },
-    {
-      $project: {
-        stock: {
-          items: 1,
-          studentName: 1,
-          state: 1,
-          level: 1,
-          district: 1,
-          enrollDate: 1,
+    let startDate = req.body.startDate;
+    let endDate = req.body.endDate;
+    var counts = {};
+    var Ordercounts = {};
+    let date = req.body.date;
+  
+    let endDt = new Date(endDate).toLocaleDateString("en-US");
+    let startDt = new Date(startDate).toLocaleDateString("en-US");
+    const data = await Studentlist.aggregate([
+      {
+        $match: { state: "Tamil Nadu" },
+      },
+      {
+        $group: { _id: "$franchise", stock: { $push: "$$ROOT" } },
+      },
+      {
+        $project: {
+          stock: {
+            items: 1,
+            studentName: 1,
+            state: 1,
+            level: 1,
+            district: 1,
+            enrollDate: 1,
+            tShirt: 1,
+          },
         },
       },
-    },
-  ]);
-  console.log(data);
-  let out = [];
-  for (var i = 0; i < data.length; i++) {
-    let oneOut = {
-      franchiseName: data[i]["_id"],
-      count: {},
-      enrolledStudents: [],
-    };
-
-    let onlyItems = [];
-    data[i].stock.forEach(function (elem) {
-      let currentDt = new Date(elem.enrollDate).toLocaleDateString("en-US");
-      if (new Date(currentDt) > new Date(endDt)) {
-        return;
-      }
-      if (new Date(currentDt) < new Date(startDt)) {
-        return;
-      }
-      onlyItems.push(elem.items);
-      let enrollStu = {
-        studentName: elem.studentName,
-        state: elem.state,
-        level: elem.level,
-        district: elem.district,
-        enrollDate: elem.enrollDate,
+    ]);
+    console.log(data);
+    let out = [];
+    for (var i = 0; i < data.length; i++) {
+      let oneOut = {
+        franchiseName: data[i]["_id"],
+        count: {},
+        enrolledStudents: [],
       };
-      oneOut.enrolledStudents.push(enrollStu);
-    });
-    onlyItems = onlyItems.flat();
-    for (const num of onlyItems) {
-      counts[num] = counts[num] ? counts[num] + 1 : 1;
+      let tShirtArr = [];
+  
+      let onlyItems = [];
+      data[i].stock.forEach(function (elem) {
+        let currentDt = new Date(elem.enrollDate).toLocaleDateString("en-US");
+        if (new Date(currentDt) > new Date(endDt)) {
+          return;
+        }
+        if (new Date(currentDt) < new Date(startDt)) {
+          return;
+        }
+        onlyItems.push(elem.items);
+        let enrollStu = {
+          studentName: elem.studentName,
+          state: elem.state,
+          level: elem.level,
+          district: elem.district,
+          enrollDate: elem.enrollDate,
+        };
+        oneOut.enrolledStudents.push(enrollStu);
+        tShirtArr.push("Tshirt-" + elem.tShirt);
+      });
+      const tShirtObj = tShirtArr.reduce((acc, currentValue) => {
+        acc[currentValue] = (acc[currentValue] || 0) + 1;
+        return acc;
+      }, {});
+      oneOut.tShirtObj = tShirtObj;
+      onlyItems = onlyItems.flat();
+      for (const num of onlyItems) {
+        counts[num] = counts[num] ? counts[num] + 1 : 1;
+      }
+      oneOut.count = counts;
+      counts = {};
+      out.push(oneOut);
     }
-    oneOut.count = counts;
-    counts = {};
-    out.push(oneOut);
-  }
-  console.log(out);
-  let orderData = await Orderslist.aggregate([
-    // {
-    //   $match: {
-    //     createdAt: {
-    //       $gte: new Date(startDate).toLocaleDateString("en-US"),
-    //     },
-    //   },
-    // },
-    {
-      $group: { _id: "$franchise", orders: { $push: "$$ROOT" } },
-    },
-    {
-      $project: {
-        orders: {
-          studentID: 1,
-          futureLevel: 1,
-          items: 1,
-          currentLevel: 1,
-          createdAt: 1,
+    console.log(out);
+    let orderData = await Orderslist.aggregate([
+      {
+        $match: { status: "Success" },
+      },
+      // {
+      //   $match: {
+      //     createdAt: {
+      //       $gte: new Date(startDate).toLocaleDateString("en-US"),
+      //     },
+      //   },
+      // },
+      {
+        $group: { _id: "$franchise", orders: { $push: "$$ROOT" } },
+      },
+      {
+        $project: {
+          orders: {
+            studentID: 1,
+            futureLevel: 1,
+            items: 1,
+            currentLevel: 1,
+            createdAt: 1,
+          },
         },
       },
-    },
-  ]);
-  console.log("orderDATA - ", orderData);
-  let studentNameData = await getstudentInfo();
-  let orderOut = [];
-  for (var i = 0; i < orderData.length; i++) {
-    let oneOrderOut = {
-      franchiseName: orderData[i]._id,
-      ordered: [],
-      orderCounts: {},
-    };
-    let onlyItems = [];
-    orderData[i].orders.forEach(function (elem) {
-      let currentDt = new Date(elem.createdAt).toLocaleDateString("en-US");
-      if (new Date(currentDt) > new Date(endDt)) {
-        return;
-      }
-      if (new Date(currentDt) < new Date(startDt)) {
-        return;
-      }
-      let stuData = studentNameData.filter(function (item) {
-        return item.studentID === elem.studentID;
+    ]);
+    console.log("orderDATA - ", orderData);
+    let studentNameData = await getstudentInfo();
+    let orderOut = [];
+    for (var i = 0; i < orderData.length; i++) {
+      let oneOrderOut = {
+        franchiseName: orderData[i]._id,
+        ordered: [],
+        orderCounts: {},
+      };
+      let onlyItems = [];
+      orderData[i].orders.forEach(function (elem) {
+        let currentDt = new Date(elem.createdAt).toLocaleDateString("en-US");
+        if (new Date(currentDt) > new Date(endDt)) {
+          return;
+        }
+        if (new Date(currentDt) < new Date(startDt)) {
+          return;
+        }
+        let stuData = studentNameData.filter(function (item) {
+          return item.studentID === elem.studentID;
+        });
+        console.log("StudentData  =  ", stuData, "elem ", elem);
+        let newOrd;
+        if (stuData && stuData[0].state == "Tamil Nadu") {
+          newOrd = {
+            studentName: stuData[0].studentName,
+            studentID: elem.studentID,
+            state: stuData[0].state,
+            currentLevel: elem.currentLevel,
+            futureLevel: elem.futureLevel,
+            district: stuData[0].district,
+            createdAt: elem.createdAt,
+          };
+          oneOrderOut.ordered.push(newOrd);
+          onlyItems.push(elem.items);
+        }
       });
-      console.log("StudentData  =  ", stuData, "elem ", elem);
-      let newOrd;
-      if (stuData && stuData[0].state == "Tamil Nadu") {
-        newOrd = {
-          studentName: stuData[0].studentName,
-          studentID: elem.studentID,
-          state: stuData[0].state,
-          currentLevel: elem.currentLevel,
-          futureLevel: elem.futureLevel,
-          district: stuData[0].district,
-          createdAt: elem.createdAt,
-        };
-        oneOrderOut.ordered.push(newOrd);
-        onlyItems.push(elem.items);
+      onlyItems = onlyItems.flat();
+      for (const num of onlyItems) {
+        Ordercounts[num] = Ordercounts[num] ? Ordercounts[num] + 1 : 1;
       }
-    });
-    onlyItems = onlyItems.flat();
-    for (const num of onlyItems) {
-      Ordercounts[num] = Ordercounts[num] ? Ordercounts[num] + 1 : 1;
+      oneOrderOut.orderCounts = Ordercounts;
+      Ordercounts = {};
+      orderOut.push(oneOrderOut);
     }
-    oneOrderOut.orderCounts = Ordercounts;
-    Ordercounts = {};
-    orderOut.push(oneOrderOut);
-  }
-  const map = new Map();
-  out.forEach((item) => map.set(item.franchiseName, item));
-  orderOut.forEach((item) =>
-    map.set(item.franchiseName, { ...map.get(item.franchiseName), ...item })
-  );
-  const mergedArr = Array.from(map.values());
-  let kirr = mergedArr;
-  for (i = 0; i < mergedArr.length; i++) {
-    var totalItems = {};
-    for (var key in mergedArr[i].count) {
-      totalItems[key] = mergedArr[i].count[key];
-    }
-    for (var key in mergedArr[i].orderCounts) {
-      if (totalItems[key]) {
-        totalItems[key] =
-          mergedArr[i].orderCounts[key] + mergedArr[i].count[key];
-      } else {
-        totalItems[key] = mergedArr[i].orderCounts[key];
+    const map = new Map();
+    out.forEach((item) => map.set(item.franchiseName, item));
+    orderOut.forEach((item) =>
+      map.set(item.franchiseName, { ...map.get(item.franchiseName), ...item })
+    );
+    const mergedArr = Array.from(map.values());
+    let kirr = mergedArr;
+    for (i = 0; i < mergedArr.length; i++) {
+      var totalItems = {};
+      for (var key in mergedArr[i].count) {
+        totalItems[key] = mergedArr[i].count[key];
       }
+      for (var key in mergedArr[i].orderCounts) {
+        if (totalItems[key]) {
+          totalItems[key] =
+            mergedArr[i].orderCounts[key] + mergedArr[i].count[key];
+        } else {
+          totalItems[key] = mergedArr[i].orderCounts[key];
+        }
+      }
+      // mergedArr[i]["totalItems"] = totalItems;
+      mergedArr[i]["totalItems"] = { ...totalItems, ...mergedArr[i].tShirtObj };
+      
+      delete mergedArr[i]["count"];
+      delete mergedArr[i]["orderCounts"];
     }
-    mergedArr[i]["totalItems"] = totalItems;
-    delete mergedArr[i]["count"];
-    delete mergedArr[i]["orderCounts"];
-  }
-  const filteredmergedArr = mergedArr.filter((object) => object !== null);
-  if (mergedArr) {
-    res.status(200).json({
-      status: true,
-      data: filteredmergedArr,
-    });
-  }
-});
+    const filteredmergedArr = mergedArr.filter((object) => object !== null);
+    if (mergedArr) {
+      res.status(200).json({
+        status: true,
+        data: filteredmergedArr,
+      });
+    }
+  });
 route.post("/dataperiod", async (req, res) => {
   var counts = {};
   var Ordercounts = {};
@@ -1130,7 +1294,7 @@ route.post("/dataperiod", async (req, res) => {
   console.log(out);
   let orderData = await Orderslist.aggregate([
     {
-      $match: { createdAt: new Date(date).toLocaleDateString("en-US") },
+      $match: { createdAt: new Date(date).toLocaleDateString("en-US"), status: "Success" },
     },
     {
       $group: { _id: "$franchise", orders: { $push: "$$ROOT" } },
@@ -1326,4 +1490,5 @@ function verifyToken(req, res, next) {
     res.sendStatus(403);
   }
 }
+
 module.exports = route;
