@@ -159,20 +159,16 @@ route.post("/getallfranchise", async (req, res) => {
 });
 
 //APPROVE USER
-route.post("/approveUser", verifyToken, (req, res, next) => {
+route.post("/approveUser",async (req, res, next) => {
   let { franchiseID } = req.body;
   try {
     const filter = { franchiseID: franchiseID };
     const update = {
       approve: true,
     };
-    jwt.verify(req.token, "your_secret_key", async (err, authData) => {
-      if (err) res.sendStatus(403);
-      else {
-        let updateData = await Franchiselist.findOneAndUpdate(filter, update);
-        res.send(JSON.stringify({ status: true, message: "User approved!" }));
-      }
-    });
+    let updateData = await Franchiselist.findOneAndUpdate(filter, update);
+    res.send(JSON.stringify({ status: true, message: "User approved!" }));
+
   } catch (err) {
     res.status(400).json({
       status: false,
@@ -181,20 +177,17 @@ route.post("/approveUser", verifyToken, (req, res, next) => {
   }
 });
 // REJECT USER
-route.post("/rejectUser", verifyToken, (req, res, next) => {
+route.post("/rejectUser",async (req, res, next) => {
   let { franchiseID } = req.body;
   try {
     const filter = { franchiseID: franchiseID };
     const update = {
       approve: false,
     };
-    jwt.verify(req.token, "your_secret_key", async (err, authData) => {
-      if (err) res.sendStatus(403);
-      else {
-        let updateData = await Franchiselist.findOneAndUpdate(filter, update);
-        res.send(JSON.stringify({ status: true, message: "User rejected!" }));
-      }
-    });
+
+    let updateData = await Franchiselist.findOneAndUpdate(filter, update);
+    res.send(JSON.stringify({ status: true, message: "User rejected!" }));
+
   } catch (err) {
     res.status(400).json({
       status: false,
