@@ -170,8 +170,8 @@ route.post("/approveUser", async (req, res, next) => {
     const update = {
       approve: true,
     };
-    let updateData = await Franchiselist.findOneAndUpdate(filter, update);
-    res.send(JSON.stringify({ status: true, message: "User approved!" }));
+        let updateData = await Franchiselist.findOneAndUpdate(filter, update);
+        res.send(JSON.stringify({ status: true, message: "User approved!" }));
   } catch (err) {
     res.status(400).json({
       status: false,
@@ -188,8 +188,8 @@ route.post("/rejectUser", async (req, res, next) => {
       approve: false,
     };
 
-    let updateData = await Franchiselist.findOneAndUpdate(filter, update);
-    res.send(JSON.stringify({ status: true, message: "User rejected!" }));
+        let updateData = await Franchiselist.findOneAndUpdate(filter, update);
+        res.send(JSON.stringify({ status: true, message: "User rejected!" }));
   } catch (err) {
     res.status(400).json({
       status: false,
@@ -431,8 +431,8 @@ route.post("/multiplestudents", async (req, res) => {
           level: req.body.data[i].level,
           program: req.body.data[i].program,
           date: new Date().toLocaleDateString("en-US"),
-          cost: req.body.data[i].cost[0],
-          paymentID: req.body.data[i].paymentID,
+          cost: req.body.data[i].cost,
+          paymentID: order_id,
         },
       ];
       let newStudent = Studentlist({
@@ -663,13 +663,14 @@ route.post("/order", async (req, res) => {
   var isSuccessful = req.body.isSuccessful ?? false;
   const razorpayOrderObj = req.body.razorpayOrderObj;
   console.log(req.body);
+  let razorpayOrder;
   console.log(razorpayOrderObj);
   // if isSuccessful is false, then wait for the payment to be successful while checking the paymentID every 5 seconds for 5 minutes
   try {
     const razerpayOrder = await RPcreateOrder(razorpayOrderObj);
     res.send(razerpayOrder.id);
     console.log(razerpayOrder);
-    let razorpayOrder = razorpayOrders(razerpayOrder);
+    razorpayOrder = razorpayOrders(razerpayOrder);
     await razorpayOrder.save();
 
     if (!isSuccessful) {
@@ -700,7 +701,7 @@ route.post("/order", async (req, res) => {
       program: req.body.program,
       date: new Date().toLocaleDateString("en-US"),
       cost: req.body.cost,
-      paymentID: req.body.paymentID,
+      paymentID: razorpayOrder.id,
     },
   ];
   let reqCertificate = req.body.certificate;
@@ -913,11 +914,12 @@ route.post("/data", async (req, res) => {
     let onlyItems = [];
 
     data[i].stock.forEach(function (elem) {
+
       let currentDt = new Date(elem.enrollDate).toLocaleDateString("en-US");
-      if (new Date(currentDt) >= new Date(endDt)) {
+      if (new Date(currentDt) > new Date(endDt)) {
         return;
       }
-      if (new Date(currentDt) <= new Date(startDt)) {
+      if (new Date(currentDt) < new Date(startDt)) {
         return;
       }
       onlyItems.push(elem.items);
@@ -981,9 +983,7 @@ route.post("/data", async (req, res) => {
       ordered: [],
       orderCounts: {},
     };
-    if(oneOrderOut.franchiseName=="test123"){
-      console.log("oneOrderOut - ",oneOrderOut);
-    }
+
     let onlyItems = [];
     orderData[i].orders.forEach(function (elem) {
       let currentDt = new Date(elem.createdAt).toLocaleString("en-US").split(',')[0];
@@ -1007,7 +1007,7 @@ route.post("/data", async (req, res) => {
           currentLevel: elem.currentLevel,
           futureLevel: elem.futureLevel,
           district: stuData[0].district,
-          createdAt: elem.createdAt,
+          createdAt: elem.createdAt.split(",")[0],
         };
         oneOrderOut.ordered.push(newOrd);
       }
@@ -1026,7 +1026,7 @@ route.post("/data", async (req, res) => {
     map.set(item.franchiseName, { ...map.get(item.franchiseName), ...item })
   );
   const mergedArr = Array.from(map.values());
-  let kirr = mergedArr;
+
   for (i = 0; i < mergedArr.length; i++) {
     var totalItems = {};
     for (var key in mergedArr[i].count) {
@@ -1051,7 +1051,7 @@ route.post("/data", async (req, res) => {
       mergedArr[i]["enrolledStudents"]
     ) {
       if (mergedArr[i]["enrolledStudents"].length == 0) {
-        delete mergedArr[i];
+      delete mergedArr[i];
       }
     } else {
       delete mergedArr[i]["count"];
@@ -1071,14 +1071,10 @@ route.post("/tamilnadureport", async (req, res) => {
   let endDate = req.body.endDate;
   var counts = {};
   var Ordercounts = {};
-  let date = req.body.date;
 
   let endDt = new Date(endDate).toLocaleDateString("en-US");
   let startDt = new Date(startDate).toLocaleDateString("en-US");
   const data = await Studentlist.aggregate([
-    {
-      $match: { state: "Tamil Nadu" },
-    },
     {
       $group: { _id: "$franchise", stock: { $push: "$$ROOT" } },
     },
@@ -1142,15 +1138,13 @@ route.post("/tamilnadureport", async (req, res) => {
   console.log(out);
   let orderData = await Orderslist.aggregate([
     {
-      $match: { status: "Success" },
+      $match: {
+        createdAt: {
+          $gte: new Date(startDate).toLocaleDateString("en-US"),
+        },
+        status: "Success",
+      },
     },
-    // {
-    //   $match: {
-    //     createdAt: {
-    //       $gte: new Date(startDate).toLocaleDateString("en-US"),
-    //     },
-    //   },
-    // },
     {
       $group: { _id: "$franchise", orders: { $push: "$$ROOT" } },
     },
@@ -1175,21 +1169,23 @@ route.post("/tamilnadureport", async (req, res) => {
       ordered: [],
       orderCounts: {},
     };
+
     let onlyItems = [];
     orderData[i].orders.forEach(function (elem) {
-      let currentDt = new Date(elem.createdAt).toLocaleDateString("en-US");
+      let currentDt = new Date(elem.createdAt).toLocaleDateString("en-US").split(',')[0];
       if (new Date(currentDt) > new Date(endDt)) {
         return;
       }
       if (new Date(currentDt) < new Date(startDt)) {
         return;
       }
+      onlyItems.push(elem.items);
       let stuData = studentNameData.filter(function (item) {
         return item.studentID === elem.studentID;
       });
       console.log("StudentData  =  ", stuData, "elem ", elem);
       let newOrd;
-      if (stuData && stuData[0].state == "Tamil Nadu") {
+      if (stuData) {
         newOrd = {
           studentName: stuData[0].studentName,
           studentID: elem.studentID,
@@ -1197,10 +1193,9 @@ route.post("/tamilnadureport", async (req, res) => {
           currentLevel: elem.currentLevel,
           futureLevel: elem.futureLevel,
           district: stuData[0].district,
-          createdAt: elem.createdAt,
+          createdAt: elem.createdAt.split(",")[0],
         };
         oneOrderOut.ordered.push(newOrd);
-        onlyItems.push(elem.items);
       }
     });
     onlyItems = onlyItems.flat();
@@ -1217,7 +1212,7 @@ route.post("/tamilnadureport", async (req, res) => {
     map.set(item.franchiseName, { ...map.get(item.franchiseName), ...item })
   );
   const mergedArr = Array.from(map.values());
-  let kirr = mergedArr;
+
   for (i = 0; i < mergedArr.length; i++) {
     var totalItems = {};
     for (var key in mergedArr[i].count) {
@@ -1233,17 +1228,46 @@ route.post("/tamilnadureport", async (req, res) => {
     }
     // mergedArr[i]["totalItems"] = totalItems;
     mergedArr[i]["totalItems"] = { ...totalItems, ...mergedArr[i].tShirtObj };
-
-    delete mergedArr[i]["count"];
-    delete mergedArr[i]["orderCounts"];
+    if (
+      Object.keys(mergedArr[i]["totalItems"]).length === 0 &&
+      mergedArr[i]["enrolledStudents"]
+    ) {
+      if (mergedArr[i]["enrolledStudents"].length == 0) {
+      delete mergedArr[i];
+      }
+    } else {
+      delete mergedArr[i]["count"];
+      delete mergedArr[i]["orderCounts"];
+    }
   }
   const filteredmergedArr = mergedArr.filter((object) => object !== null);
-  if (mergedArr) {
-    res.status(200).json({
-      status: true,
-      data: filteredmergedArr,
+  let updatedfilteredmergedArr = [];
+  var promises = filteredmergedArr.map(function(elem) {
+    return Franchiselist.find({ username: elem.franchiseName }, { state: 1 })
+        .then((items) => {
+            if (items.length > 0 && items[0].state === "Tamil Nadu") {
+                return elem;
+            } else {
+                return null; // or any value indicating the element is filtered out
+            }
+        });
+});
+
+Promise.all(promises)
+    .then((results) => {
+        // Filter out null values (elements that were filtered out)
+        var filteredResults = results.filter(result => result !== null);
+        res.status(200).json({
+            status: true,
+            data: filteredResults,
+        });
+    })
+    .catch((error) => {
+        // Handle errors
+        console.error(error);
+        res.status(500).json({ status: false, message: "Internal server error" });
     });
-  }
+
 });
 route.post("/dataperiod", async (req, res) => {
   var counts = {};
