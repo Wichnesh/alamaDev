@@ -170,8 +170,8 @@ route.post("/approveUser", async (req, res, next) => {
     const update = {
       approve: true,
     };
-        let updateData = await Franchiselist.findOneAndUpdate(filter, update);
-        res.send(JSON.stringify({ status: true, message: "User approved!" }));
+    let updateData = await Franchiselist.findOneAndUpdate(filter, update);
+    res.send(JSON.stringify({ status: true, message: "User approved!" }));
   } catch (err) {
     res.status(400).json({
       status: false,
@@ -188,8 +188,8 @@ route.post("/rejectUser", async (req, res, next) => {
       approve: false,
     };
 
-        let updateData = await Franchiselist.findOneAndUpdate(filter, update);
-        res.send(JSON.stringify({ status: true, message: "User rejected!" }));
+    let updateData = await Franchiselist.findOneAndUpdate(filter, update);
+    res.send(JSON.stringify({ status: true, message: "User rejected!" }));
   } catch (err) {
     res.status(400).json({
       status: false,
@@ -210,7 +210,7 @@ route.post("/studentcartreg", async (req, res) => {
   ];
   let newStudent = StudentCartlist({
     studentID: req.body.studentID,
-    enrollDate: new Date(req.body.enrollDate).toLocaleDateString("en-US"),
+    enrollDate: new Date(req.body.enrollDate).toISOString().split("T")[0],
     studentName: req.body.studentName,
     address: req.body.address,
     state: req.body.state,
@@ -272,7 +272,7 @@ route.post("/student-reg", async (req, res) => {
   ];
   let newStudent = Studentlist({
     studentID: req.body.studentID,
-    enrollDate: new Date(req.body.enrollDate).toLocaleDateString("en-US"),
+    enrollDate: new Date(req.body.enrollDate).toISOString().split("T")[0],
     studentName: req.body.studentName,
     address: req.body.address,
     state: req.body.state,
@@ -386,7 +386,7 @@ route.post("/multiplestudents", async (req, res) => {
   console.log(req.body);
   var razorpayOrderObj = req.body.razorpayOrderObj;
   var isSuccessful = req.body.isSuccessful;
-  var order_id;
+  var order_id, razopayOrderCreatedAt;
   try {
     const razerpayOrder = await RPcreateOrder(razorpayOrderObj);
     if (razerpayOrder.id) {
@@ -394,6 +394,7 @@ route.post("/multiplestudents", async (req, res) => {
       console.log(razerpayOrder);
       let razorpayOrder = razorpayOrders(razerpayOrder);
       razorpayOrder.notes = { ...razorpayOrder?.notes, ...req.body.data };
+      razopayOrderCreatedAt = razorpayOrder.created_at;
       await razorpayOrder.save();
       order_id = razorpayOrder.id;
 
@@ -426,20 +427,27 @@ route.post("/multiplestudents", async (req, res) => {
       await StudentCartlist.findOneAndRemove({
         studentID: req.body.data[i].studentID,
       });
+      const date = new Date(razopayOrderCreatedAt * 1000);
+      const formattedDate = date.toISOString().split("T")[0]; // Format date as YYYY-MM-DD
+      const formattedDateTime = date.toISOString(); // Format date as YYYY-MM-DDTHH:mm:ss.sssZ
+
       let newLevelUpdate = [
         {
           level: req.body.data[i].level,
           program: req.body.data[i].program,
-          date: new Date().toLocaleDateString("en-US"),
+          date: formattedDateTime,
           cost: req.body.data[i].cost,
           paymentID: order_id,
         },
       ];
+      // const date = new Date(razopayOrderCreatedAt * 1000);
+      // const formattedDate = `${
+      //   date.getMonth() + 1
+      // }/${date.getDate()}/${date.getFullYear()}`;
+
       let newStudent = Studentlist({
         studentID: req.body.data[i].studentID,
-        enrollDate: new Date(req.body.data[i].enrollDate).toLocaleDateString(
-          "en-US"
-        ),
+        enrollDate: formattedDate,
         studentName: req.body.data[i].studentName,
         address: req.body.data[i].address,
         state: req.body.data[i].state,
@@ -695,18 +703,18 @@ route.post("/order", async (req, res) => {
     console.log(err);
     res.send("Error in creating order");
   }
+  let razor_createdAt = razorpayOrder.created_at;
+  const date = new Date(razor_createdAt * 1000);
   let newLevelUpdate = [
     {
       level: req.body.futureLevel,
       program: req.body.program,
-      date: new Date().toLocaleDateString("en-US"),
+      date: date.toLocaleDateString("en-US"),
       cost: req.body.cost,
       paymentID: razorpayOrder.id,
     },
   ];
-  let razor_createdAt = razorpayOrder.created_at;
-  const date = new Date(razor_createdAt * 1000);
-   const timeString = date. toLocaleString();
+  const timeString = date.toLocaleString();
   let reqCertificate = req.body.certificate;
   let newOrder = Orderslist({
     studentID: req.body.studentID,
@@ -917,7 +925,6 @@ route.post("/data", async (req, res) => {
     let onlyItems = [];
 
     data[i].stock.forEach(function (elem) {
-
       let currentDt = new Date(elem.enrollDate).toLocaleDateString("en-US");
       if (new Date(currentDt) > new Date(endDt)) {
         return;
@@ -989,7 +996,9 @@ route.post("/data", async (req, res) => {
 
     let onlyItems = [];
     orderData[i].orders.forEach(function (elem) {
-      let currentDt = new Date(elem.createdAt).toLocaleString("en-US").split(',')[0];
+      let currentDt = new Date(elem.createdAt)
+        .toLocaleString("en-US")
+        .split(",")[0];
       if (new Date(currentDt) > new Date(endDt)) {
         return;
       }
@@ -1054,7 +1063,7 @@ route.post("/data", async (req, res) => {
       mergedArr[i]["enrolledStudents"]
     ) {
       if (mergedArr[i]["enrolledStudents"].length == 0) {
-      delete mergedArr[i];
+        delete mergedArr[i];
       }
     } else {
       delete mergedArr[i]["count"];
@@ -1175,7 +1184,9 @@ route.post("/tamilnadureport", async (req, res) => {
 
     let onlyItems = [];
     orderData[i].orders.forEach(function (elem) {
-      let currentDt = new Date(elem.createdAt).toLocaleDateString("en-US").split(',')[0];
+      let currentDt = new Date(elem.createdAt)
+        .toLocaleDateString("en-US")
+        .split(",")[0];
       if (new Date(currentDt) > new Date(endDt)) {
         return;
       }
@@ -1236,7 +1247,7 @@ route.post("/tamilnadureport", async (req, res) => {
       mergedArr[i]["enrolledStudents"]
     ) {
       if (mergedArr[i]["enrolledStudents"].length == 0) {
-      delete mergedArr[i];
+        delete mergedArr[i];
       }
     } else {
       delete mergedArr[i]["count"];
@@ -1245,32 +1256,33 @@ route.post("/tamilnadureport", async (req, res) => {
   }
   const filteredmergedArr = mergedArr.filter((object) => object !== null);
   let updatedfilteredmergedArr = [];
-  var promises = filteredmergedArr.map(function(elem) {
-    return Franchiselist.find({ username: elem.franchiseName }, { state: 1 })
-        .then((items) => {
-            if (items.length > 0 && items[0].state === "Tamil Nadu") {
-                return elem;
-            } else {
-                return null; // or any value indicating the element is filtered out
-            }
-        });
-});
+  var promises = filteredmergedArr.map(function (elem) {
+    return Franchiselist.find(
+      { username: elem.franchiseName },
+      { state: 1 }
+    ).then((items) => {
+      if (items.length > 0 && items[0].state === "Tamil Nadu") {
+        return elem;
+      } else {
+        return null; // or any value indicating the element is filtered out
+      }
+    });
+  });
 
-Promise.all(promises)
+  Promise.all(promises)
     .then((results) => {
-        // Filter out null values (elements that were filtered out)
-        var filteredResults = results.filter(result => result !== null);
-        res.status(200).json({
-            status: true,
-            data: filteredResults,
-        });
+      // Filter out null values (elements that were filtered out)
+      var filteredResults = results.filter((result) => result !== null);
+      res.status(200).json({
+        status: true,
+        data: filteredResults,
+      });
     })
     .catch((error) => {
-        // Handle errors
-        console.error(error);
-        res.status(500).json({ status: false, message: "Internal server error" });
+      // Handle errors
+      console.error(error);
+      res.status(500).json({ status: false, message: "Internal server error" });
     });
-
 });
 route.post("/dataperiod", async (req, res) => {
   var counts = {};
@@ -1490,23 +1502,37 @@ async function generateID() {
   }
   return genID;
 }
+var franchiseExist = 0;
 async function newFranchiseID() {
   let franchises = await Franchiselist.find({});
-  let franchiseCount = franchises.length;
+  let franchiseCount = franchises.length + franchiseExist;
   let newID = "AF0000" + franchiseCount;
+  let newFranchiseIDFind = await Franchiselist.find({ franchiseID: newID });
+  if (newFranchiseIDFind.length > 0) {
+    franchiseExist = franchiseExist + 1;
+    return newFranchiseID();
+  }
+  franchiseExist = 0;
   return newID;
 }
+var exist = 0;
 async function newStudentID(stateName, franchiseName) {
   console.log(stateName);
   console.log(franchiseName);
   let studentsList = await Studentlist.find({});
   let studentsCartList = await StudentCartlist.find({});
-  let studentsCount = studentsList.length + studentsCartList.length;
+  let studentsCount = studentsList.length + studentsCartList.length + 1 + exist;
   let studentID =
     stateName.toUpperCase().slice(0, 2) +
     franchiseName.toUpperCase().slice(0, 2) +
     "0000" +
     studentsCount;
+  let newStudentIDFind = await Studentlist.find({ studentID: studentID });
+  if (newStudentIDFind.length > 0) {
+    exist = exist + 1;
+    return newStudentID(stateName, franchiseName);
+  }
+  exist = 0;
   return studentID;
 }
 async function generateStudentID() {

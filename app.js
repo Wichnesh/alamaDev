@@ -16,6 +16,7 @@ const dbUrl = process.env.MONGOLOCAL;
 const ConnectionParams = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000,
 };
 //Connect to mongoDB
 mongoose
@@ -41,15 +42,11 @@ app.get("/", (req, res) => {
   res.send("Home");
 });
 
-
 app.listen(port, () => {
   console.log("Server started at PORT", port);
 });
 
-
 // Run a cron job every 10 minutes to check the status of the payment and update the status in the database if the payment is successful. or make it failed itf time is more than 10 minutes.
-
-
 
 // cron.schedule("*/10 * * * *", async () => {
 //   console.log("Running a task every 10 minutes");
